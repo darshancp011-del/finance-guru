@@ -7,6 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Mobile More Menu toggle
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMoreMenu');
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        menu.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    } else {
+        menu.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
 function fetchDashboardData() {
     fetch('/api/dashboard_data')
         .then(response => response.json())

@@ -650,17 +650,7 @@
             }
 
         // ===== MOBILE MORE MENU =====
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobileMoreMenu');
-            if (menu.style.display === 'none' || menu.style.display === '') {
-                menu.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-            } else {
-                menu.style.display = 'none';
-                document.body.style.overflow = '';
-            }
-        }
-        }
+        // ...existing code...
 
         // Close quick add modal on outside click
         document.getElementById('quickAddModal')?.addEventListener('click', function(e) {
