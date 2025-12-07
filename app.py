@@ -13,6 +13,9 @@ from fpdf import FPDF
 # Ensure soft-delete column exists for transactions
 def ensure_transaction_soft_delete():
     conn = get_db_connection()
+    if conn is None:
+        print("Warning: Could not connect to database for ensure_transaction_soft_delete")
+        return
     cursor = conn.cursor()
     try:
         cursor.execute("ALTER TABLE transactions ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE")
@@ -26,6 +29,9 @@ def ensure_transaction_soft_delete():
 # Ensure user profile columns exist (phone, job_title, bio, initial_balance)
 def ensure_user_profile_columns():
     conn = get_db_connection()
+    if conn is None:
+        print("Warning: Could not connect to database for ensure_user_profile_columns")
+        return
     cursor = conn.cursor()
     columns_to_add = [
         ("phone", "VARCHAR(20) DEFAULT NULL"),
