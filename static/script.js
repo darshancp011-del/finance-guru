@@ -204,8 +204,8 @@ function renderCharts(data) {
                         ticks: { font: { size: 11 } }
                     } 
                 },
-                barPercentage: 0.3,
-                categoryPercentage: 0.4
+                barPercentage: 0.15,
+                categoryPercentage: 0.2
             }
         });
     }
