@@ -1,3 +1,29 @@
+@media (max-width: 768px) {
+    #notifDropdown {
+        position: fixed !important;
+        top: 60px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 94vw !important;
+        max-width: 420px !important;
+        right: auto !important;
+        border-radius: 18px !important;
+        max-height: 60vh !important;
+        overflow-y: auto !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+}
+@media (orientation: landscape) and (max-width: 768px) {
+    #notifDropdown {
+        top: 48px !important;
+        width: 98vw !important;
+        max-width: 98vw !important;
+        left: 1vw !important;
+        transform: none !important;
+        border-radius: 14px !important;
+        max-height: 80vh !important;
+    }
+}
 @media (orientation: landscape) and (max-width: 768px) {
     .mobile-bottom-nav {
         position: fixed;
