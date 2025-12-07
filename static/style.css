@@ -770,6 +770,147 @@ tr:last-child td {
 }
 
 /* ============================================
+   MOBILE MORE MENU (Slide Up Panel)
+   ============================================ */
+.mobile-more-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.mobile-more-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.mobile-more-content {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: 24px 24px 0 0;
+    padding: 1.5rem;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.mobile-more-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.mobile-more-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.mobile-more-header button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.75rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.mobile-more-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.mobile-more-links a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    text-decoration: none;
+    color: var(--text-muted);
+    background: var(--glass-bg);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    transition: all 0.2s ease;
+}
+
+.mobile-more-links a i {
+    font-size: 1.5rem;
+}
+
+.mobile-more-links a span {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.mobile-more-links a:hover,
+.mobile-more-links a.active {
+    background: rgba(114, 105, 227, 0.15);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.mobile-more-links a.logout-link:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+/* ============================================
+   MOBILE DASHBOARD LAYOUT FIXES
+   ============================================ */
+@media (max-width: 768px) {
+    /* Bills and Recent Transactions - Stack vertically */
+    .dashboard-bottom-section {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    /* Recent transactions section */
+    .recent-transactions-card {
+        order: 1;
+    }
+
+    /* Bills section */
+    .bills-card {
+        order: 2;
+    }
+
+    /* Make sure grid layouts stack on mobile */
+    div[style*="grid-template-columns: 1fr 1fr"],
+    div[style*="grid-template-columns: 2fr 1fr"],
+    div[style*="grid-template-columns: 1fr 2fr"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+}
+
+/* ============================================
    EXTRA SMALL PHONES (below 480px)
    ============================================ */
 @media (max-width: 480px) {

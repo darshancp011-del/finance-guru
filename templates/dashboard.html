@@ -93,11 +93,11 @@
 </div>
 
 <!-- Bills & Recent Transactions Row -->
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-top: 1.5rem;" id="widget-bottom-row">
+<div class="dashboard-bottom-section" style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-top: 1.5rem;" id="widget-bottom-row">
     <!-- Upcoming Bills -->
-    <div class="glass glass-card" id="widget-bills-container" style="padding: 0; overflow: hidden;">
+    <div class="glass glass-card bills-card" id="widget-bills-container" style="padding: 0; overflow: hidden;">
         <div style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
-            <h3 style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+            <h3 style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
                 <i class="fas fa-file-invoice-dollar" style="color: var(--primary);"></i> Upcoming Bills
             </h3>
             <a href="{{ url_for('bills') }}" style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">View All</a>
@@ -129,10 +129,10 @@
     </div>
 
     <!-- Recent Transactions -->
-    <div class="glass glass-card" id="widget-transactions-container" style="padding: 0; overflow: hidden;">
+    <div class="glass glass-card recent-transactions-card" id="widget-transactions-container" style="padding: 0; overflow: hidden;">
         <div
             style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
-            <h3 style="font-weight: 600;">Recent Transactions</h3>
+            <h3 style="font-weight: 600; margin: 0;">Recent Transactions</h3>
             <a href="{{ url_for('transactions') }}"
                 style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">View All</a>
         </div>

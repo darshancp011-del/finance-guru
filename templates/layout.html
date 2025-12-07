@@ -181,21 +181,54 @@
         </a>
         <a href="{{ url_for('transactions') }}" class="{{ 'active' if request.endpoint == 'transactions' else '' }}">
             <i class="fas fa-exchange-alt"></i>
-            <span>Transactions</span>
+            <span>History</span>
         </a>
         <a href="#" class="nav-add-btn" onclick="toggleQuickAdd(); return false;">
             <i class="fas fa-plus"></i>
             <span>Add</span>
         </a>
-        <a href="{{ url_for('budget') }}" class="{{ 'active' if request.endpoint == 'budget' else '' }}">
-            <i class="fas fa-wallet"></i>
-            <span>Budget</span>
+        <a href="{{ url_for('bills') }}" class="{{ 'active' if request.endpoint == 'bills' else '' }}">
+            <i class="fas fa-file-invoice"></i>
+            <span>Bills</span>
         </a>
-        <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
-            <i class="fas fa-user"></i>
-            <span>Profile</span>
+        <a href="#" class="nav-more-btn" onclick="toggleMobileMenu(); return false;">
+            <i class="fas fa-ellipsis-h"></i>
+            <span>More</span>
         </a>
     </nav>
+
+    <!-- Mobile More Menu -->
+    <div id="mobileMoreMenu" class="mobile-more-menu" style="display: none;">
+        <div class="mobile-more-overlay" onclick="toggleMobileMenu()"></div>
+        <div class="mobile-more-content glass">
+            <div class="mobile-more-header">
+                <h3>More Options</h3>
+                <button onclick="toggleMobileMenu()">&times;</button>
+            </div>
+            <div class="mobile-more-links">
+                <a href="{{ url_for('budget') }}" class="{{ 'active' if request.endpoint == 'budget' else '' }}">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>Budget</span>
+                </a>
+                <a href="{{ url_for('goals') }}" class="{{ 'active' if request.endpoint == 'goals' else '' }}">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Goals</span>
+                </a>
+                <a href="{{ url_for('report') }}" class="{{ 'active' if request.endpoint == 'report' else '' }}">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="logout-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
     <!-- Quick Add Floating Button (Desktop Only) -->
     <div id="quickAddBtn" class="quick-add-fab desktop-only" onclick="toggleQuickAdd()" title="Quick Add (Press 'N')">
@@ -600,7 +633,7 @@
             
             if (modal.style.display === 'none' || modal.style.display === '') {
                 modal.style.display = 'flex';
-                fab.classList.add('active');
+                if (fab) fab.classList.add('active');
                 // Set default date to today
                 const dateInput = document.querySelector('#quickAddForm input[name="date"]');
                 if (dateInput) {
@@ -613,8 +646,20 @@
                 }, 100);
             } else {
                 modal.style.display = 'none';
-                fab.classList.remove('active');
+                if (fab) fab.classList.remove('active');
             }
+
+        // ===== MOBILE MORE MENU =====
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMoreMenu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                menu.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
         }
 
         // Close quick add modal on outside click
