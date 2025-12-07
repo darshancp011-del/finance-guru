@@ -204,22 +204,24 @@ function renderCharts(data) {
                         ticks: { font: { size: 11 } }
                     } 
                 },
-                barPercentage: 0.4,
-                categoryPercentage: 0.5
+                barPercentage: 0.6,
+                categoryPercentage: 0.7
             }
         });
     }
 
-    // Pie Chart – Top Expenses by Category
+    // Pie Chart – Income vs Expenses by Category
     const ctxPie = document.getElementById('pieChart').getContext('2d');
     const categories = data.categories || [];
     categories.sort((a, b) => b.total - a.total);
-    const topCategories = categories.slice(0, 6);
-    const pieLabels = topCategories.map(c => c.category);
-    const pieValues = topCategories.map(c => c.total);
+    const topCategories = categories.slice(0, 5);
+    
+    // Add Income to the pie chart
+    const pieLabels = ['Income', ...topCategories.map(c => c.category)];
+    const pieValues = [data.income, ...topCategories.map(c => c.total)];
     
     const gradientColors = [
-        '#7269E3', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#EC4899', '#8B5CF6', '#06B6D4'
+        '#10B981', '#EF4444', '#F59E0B', '#3B82F6', '#EC4899', '#8B5CF6', '#06B6D4'
     ];
     
     new Chart(ctxPie, {
@@ -237,7 +239,7 @@ function renderCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '65%',
+            cutout: '60%',
             plugins: { 
                 legend: { 
                     position: 'bottom', 
