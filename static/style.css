@@ -391,8 +391,35 @@ textarea.form-input:focus {
 }
 
 .chart-container {
-    height: 400px;
+    height: 350px;
     position: relative;
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+}
+
+.chart-container canvas {
+    border-radius: 8px;
+}
+
+/* Chart Card Titles */
+.card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card h3::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 2px;
 }
 
 /* Tables */

@@ -126,79 +126,253 @@ Chart.defaults.color = '#94A3B8';
 Chart.defaults.font.family = 'Outfit';
 
 function renderCharts(data) {
-    // Bar Chart – Income vs Expense vs Pending Bills
-    const ctxBar = document.getElementById('barChart').getContext('2d');
-    const pendingBills = data.bills ? data.bills.pending_amount : 0;
-    new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: ['Income', 'Expense', 'Pending Bills'],
-            datasets: [{
-                label: 'Amount (INR)',
-                data: [data.income, data.expense, pendingBills],
-                backgroundColor: ['rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(243, 156, 18, 0.7)'],
-                borderColor: ['rgba(16, 185, 129, 1)', 'rgba(239, 68, 68, 1)', 'rgba(243, 156, 18, 1)'],
-                borderWidth: 1,
-                borderRadius: 8,
-                barThickness: 50
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-                x: { grid: { display: false } }
+    // Monthly Bar Chart – Income & Expense over time (First Chart)
+    if (Array.isArray(data.monthly) && data.monthly.length > 0) {
+        const ctxMonthly = document.getElementById('barChart').getContext('2d');
+        const months = data.monthly.map(m => {
+            const [year, month] = m.month.split('-');
+            return new Date(year, month - 1).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+        }).reverse();
+        const incomeVals = data.monthly.map(m => parseFloat(m.income)).reverse();
+        const expenseVals = data.monthly.map(m => parseFloat(m.expense)).reverse();
+        
+        new Chart(ctxMonthly, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    { 
+                        label: 'Income', 
+                        data: incomeVals, 
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    },
+                    { 
+                        label: 'Expense', 
+                        data: expenseVals, 
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 20,
+                            font: { size: 12, weight: '500' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { size: 14, weight: '600' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ₹' + context.raw.toLocaleString('en-IN');
+                            }
+                        }
+                    }
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000) return '₹' + (value/1000) + 'k';
+                                return '₹' + value;
+                            },
+                            font: { size: 11 }
+                        }
+                    }, 
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    } 
+                },
+                barPercentage: 0.7,
+                categoryPercentage: 0.8
             }
-        }
-    });
+        });
+    }
 
-    // Pie Chart – Top Expenses
+    // Pie Chart – Top Expenses by Category
     const ctxPie = document.getElementById('pieChart').getContext('2d');
     const categories = data.categories || [];
     categories.sort((a, b) => b.total - a.total);
-    const pieLabels = categories.map(c => c.category);
-    const pieValues = categories.map(c => c.total);
+    const topCategories = categories.slice(0, 6);
+    const pieLabels = topCategories.map(c => c.category);
+    const pieValues = topCategories.map(c => c.total);
+    
+    const gradientColors = [
+        '#7269E3', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#EC4899', '#8B5CF6', '#06B6D4'
+    ];
+    
     new Chart(ctxPie, {
         type: 'doughnut',
         data: {
             labels: pieLabels,
             datasets: [{
                 data: pieValues,
-                backgroundColor: ['#7269E3', '#24A19C', '#FF5A5F', '#F59E0B', '#6366F1', '#EC4899'],
+                backgroundColor: gradientColors.slice(0, pieLabels.length),
                 borderWidth: 0,
-                hoverOffset: 4
+                hoverOffset: 8,
+                spacing: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15 } } }
+            cutout: '65%',
+            plugins: { 
+                legend: { 
+                    position: 'bottom', 
+                    labels: { 
+                        usePointStyle: true, 
+                        pointStyle: 'circle',
+                        padding: 15,
+                        font: { size: 11, weight: '500' }
+                    } 
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleFont: { size: 14, weight: '600' },
+                    bodyFont: { size: 13 },
+                    padding: 12,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.raw / total) * 100).toFixed(1);
+                            return context.label + ': ₹' + context.raw.toLocaleString('en-IN') + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
         }
     });
 
-    // Monthly Bar Chart – Income & Expense over time
+    // Line Chart – Monthly Trend
     if (Array.isArray(data.monthly) && data.monthly.length > 0) {
-        const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
-        const months = data.monthly.map(m => m.month).reverse();
+        const ctxLine = document.getElementById('monthlyChart').getContext('2d');
+        const months = data.monthly.map(m => {
+            const [year, month] = m.month.split('-');
+            return new Date(year, month - 1).toLocaleDateString('en-IN', { month: 'short' });
+        }).reverse();
         const incomeVals = data.monthly.map(m => parseFloat(m.income)).reverse();
         const expenseVals = data.monthly.map(m => parseFloat(m.expense)).reverse();
-        new Chart(ctxMonthly, {
-            type: 'bar',
+        const savingsVals = incomeVals.map((inc, i) => inc - expenseVals[i]);
+        
+        new Chart(ctxLine, {
+            type: 'line',
             data: {
                 labels: months,
                 datasets: [
-                    { label: 'Income', data: incomeVals, backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 1 },
-                    { label: 'Expense', data: expenseVals, backgroundColor: 'rgba(239, 68, 68, 0.7)', borderColor: 'rgba(239, 68, 68, 1)', borderWidth: 1 }
+                    { 
+                        label: 'Income', 
+                        data: incomeVals, 
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    { 
+                        label: 'Expense', 
+                        data: expenseVals, 
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#EF4444',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    { 
+                        label: 'Savings', 
+                        data: savingsVals, 
+                        borderColor: '#7269E3',
+                        backgroundColor: 'rgba(114, 105, 227, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#7269E3',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' } }, x: { grid: { display: false } } },
-                plugins: { legend: { position: 'top' } }
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: { 
+                    legend: { 
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 20,
+                            font: { size: 12, weight: '500' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { size: 14, weight: '600' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ₹' + context.raw.toLocaleString('en-IN');
+                            }
+                        }
+                    }
+                },
+                scales: { 
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000) return '₹' + (value/1000) + 'k';
+                                return '₹' + value;
+                            },
+                            font: { size: 11 }
+                        }
+                    }, 
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    } 
+                }
             }
         });
     }
