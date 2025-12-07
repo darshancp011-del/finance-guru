@@ -268,81 +268,63 @@ function renderCharts(data) {
         }
     });
 
-    // Line Chart – Monthly Trend
+    // Monthly Bar Chart – Income, Expense, Savings comparison
     if (Array.isArray(data.monthly) && data.monthly.length > 0) {
         const ctxLine = document.getElementById('monthlyChart').getContext('2d');
         const months = data.monthly.map(m => {
             const [year, month] = m.month.split('-');
-            return new Date(year, month - 1).toLocaleDateString('en-IN', { month: 'short' });
+            return new Date(year, month - 1).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
         }).reverse();
         const incomeVals = data.monthly.map(m => parseFloat(m.income)).reverse();
         const expenseVals = data.monthly.map(m => parseFloat(m.expense)).reverse();
         const savingsVals = incomeVals.map((inc, i) => inc - expenseVals[i]);
         
         new Chart(ctxLine, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: months,
                 datasets: [
                     { 
                         label: 'Income', 
                         data: incomeVals, 
+                        backgroundColor: 'rgba(16, 185, 129, 0.85)',
                         borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#10B981',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: false
                     },
                     { 
                         label: 'Expense', 
                         data: expenseVals, 
+                        backgroundColor: 'rgba(239, 68, 68, 0.85)',
                         borderColor: '#EF4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#EF4444',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: false
                     },
                     { 
                         label: 'Savings', 
                         data: savingsVals, 
+                        backgroundColor: 'rgba(114, 105, 227, 0.85)',
                         borderColor: '#7269E3',
-                        backgroundColor: 'rgba(114, 105, 227, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#7269E3',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: false
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
                 plugins: { 
                     legend: { 
                         position: 'top',
+                        align: 'center',
                         labels: {
                             usePointStyle: true,
                             pointStyle: 'circle',
-                            padding: 20,
-                            font: { size: 12, weight: '500' }
+                            padding: 15,
+                            font: { size: 11, weight: '500' }
                         }
                     },
                     tooltip: {
@@ -365,6 +347,7 @@ function renderCharts(data) {
                         ticks: {
                             callback: function(value) {
                                 if (value >= 1000) return '₹' + (value/1000) + 'k';
+                                if (value <= -1000) return '-₹' + Math.abs(value/1000) + 'k';
                                 return '₹' + value;
                             },
                             font: { size: 11 }
@@ -374,7 +357,9 @@ function renderCharts(data) {
                         grid: { display: false },
                         ticks: { font: { size: 11 } }
                     } 
-                }
+                },
+                barPercentage: 0.7,
+                categoryPercentage: 0.8
             }
         });
     }
