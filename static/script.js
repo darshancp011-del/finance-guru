@@ -147,8 +147,9 @@ function renderCharts(data) {
                         backgroundColor: 'rgba(16, 185, 129, 0.8)',
                         borderColor: 'rgba(16, 185, 129, 1)',
                         borderWidth: 0,
-                        borderRadius: 8,
+                        borderRadius: 6,
                         borderSkipped: false,
+                        barThickness: 40,
                     },
                     { 
                         label: 'Expense', 
@@ -156,8 +157,9 @@ function renderCharts(data) {
                         backgroundColor: 'rgba(239, 68, 68, 0.8)',
                         borderColor: 'rgba(239, 68, 68, 1)',
                         borderWidth: 0,
-                        borderRadius: 8,
+                        borderRadius: 6,
                         borderSkipped: false,
+                        barThickness: 40,
                     }
                 ]
             },
@@ -291,7 +293,8 @@ function renderCharts(data) {
                         borderColor: '#10B981',
                         borderWidth: 0,
                         borderRadius: 6,
-                        borderSkipped: false
+                        borderSkipped: false,
+                        barThickness: 40
                     },
                     { 
                         label: 'Expense', 
@@ -300,7 +303,8 @@ function renderCharts(data) {
                         borderColor: '#EF4444',
                         borderWidth: 0,
                         borderRadius: 6,
-                        borderSkipped: false
+                        borderSkipped: false,
+                        barThickness: 40
                     },
                     { 
                         label: 'Savings', 
@@ -309,7 +313,8 @@ function renderCharts(data) {
                         borderColor: '#7269E3',
                         borderWidth: 0,
                         borderRadius: 6,
-                        borderSkipped: false
+                        borderSkipped: false,
+                        barThickness: 40
                     }
                 ]
             },
