@@ -1,3 +1,27 @@
+@media (orientation: landscape) and (max-width: 768px) {
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 2000;
+        width: 100vw;
+        border-radius: 14px 14px 0 0;
+        display: flex;
+        justify-content: space-around;
+        background: var(--card-bg);
+        box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
+    }
+    .mobile-bottom-nav a {
+        font-size: 0.7rem;
+        padding: 0.5rem 0.5rem;
+    }
+    .mobile-bottom-nav .nav-add-btn {
+        width: 48px;
+        height: 48px;
+        margin-top: -24px;
+    }
+}
 /* Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
