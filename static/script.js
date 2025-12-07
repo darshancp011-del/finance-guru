@@ -204,8 +204,12 @@ function renderCharts(data) {
                         ticks: { font: { size: 11 } }
                     } 
                 },
-                barPercentage: 0.15,
-                categoryPercentage: 0.2
+                datasets: {
+                    bar: {
+                        barThickness: 40,
+                        maxBarThickness: 45
+                    }
+                }
             }
         });
     }
@@ -358,8 +362,12 @@ function renderCharts(data) {
                         ticks: { font: { size: 11 } }
                     } 
                 },
-                barPercentage: 0.7,
-                categoryPercentage: 0.8
+                datasets: {
+                    bar: {
+                        barThickness: 40,
+                        maxBarThickness: 45
+                    }
+                }
             }
         });
     }
