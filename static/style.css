@@ -151,8 +151,13 @@ body {
     color: var(--primary);
     margin-bottom: 3rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.3rem;
+}
+
+.brand img {
+    margin-bottom: 0;
 }
 
 .nav-links {
