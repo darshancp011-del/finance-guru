@@ -101,6 +101,14 @@ def create_user(username, email, password, initial_balance=0):
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Initialize database and create tables at startup
+from db import init_db
+try:
+    init_db()
+    print("Database initialized successfully!")
+except Exception as e:
+    print(f"Warning: Could not initialize database: {e}")
+
 # Ensure the soft-delete column exists at startup
 ensure_transaction_soft_delete()
 
@@ -478,6 +486,12 @@ def dashboard():
         check_goal_deadlines(session['user_id'])
     except Exception as e:
         print(f"Error checking goal deadlines: {e}")
+    
+    # Check balance status for notifications
+    try:
+        check_balance_status(session['user_id'])
+    except Exception as e:
+        print(f"Error checking balance status: {e}")
     
     return render_template('dashboard.html', username=session['username'], now=date.today())
 
