@@ -1674,16 +1674,16 @@ def download_report(type):
                         self.image(logo_path, x=x, y=y, w=img_width)
                 except Exception as e:
                     print(f"Watermark error: {e}")
-                self.set_font('Arial', 'B', 15)
+                self.set_font('helvetica', 'B', 15)
                 self.cell(0, 10, 'Finance Report', 0, 1, 'C')
                 self.ln(10)
             def footer(self):
                 self.set_y(-15)
-                self.set_font('Arial', 'I', 8)
+                self.set_font('helvetica', 'I', 8)
                 self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
         pdf = PDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=10)
+        pdf.set_font("helvetica", size=10)
         # Transactions table
         cols_tx = ['Date', 'Type', 'Category', 'Amount', 'Description']
         col_widths_tx = [30, 20, 40, 30, 70]
@@ -1700,9 +1700,9 @@ def download_report(type):
         # Budget summary
         if not df_budgets.empty:
             pdf.ln(5)
-            pdf.set_font("Arial", 'B', 12)
+            pdf.set_font("helvetica", 'B', 12)
             pdf.cell(0, 10, 'Budget Summary', 0, 1, 'C')
-            pdf.set_font("Arial", size=10)
+            pdf.set_font("helvetica", size=10)
             cols_bd = ['Category', 'Month', 'Limit', 'Spent', 'Remaining', 'Percent']
             col_widths_bd = [40, 30, 30, 30, 30, 30]
             for i, col in enumerate(cols_bd):
@@ -1719,9 +1719,9 @@ def download_report(type):
         # Bills summary
         if not df_bills.empty:
             pdf.ln(5)
-            pdf.set_font("Arial", 'B', 12)
+            pdf.set_font("helvetica", 'B', 12)
             pdf.cell(0, 10, 'Bills Summary', 0, 1, 'C')
-            pdf.set_font("Arial", size=10)
+            pdf.set_font("helvetica", size=10)
             cols_bl = ['Bill Name', 'Amount', 'Due Date', 'Category', 'Status']
             col_widths_bl = [50, 30, 35, 40, 35]
             for i, col in enumerate(cols_bl):
@@ -1758,7 +1758,7 @@ def download_report(type):
             plt.close()
             # Insert images into PDF
             pdf.add_page()
-            pdf.set_font('Arial', 'B', 13)
+            pdf.set_font('helvetica', 'B', 13)
             pdf.cell(0, 10, 'Monthly Expenses Chart', 0, 1, 'C')
             pdf.image(bar_path, x=30, w=150)
             pdf.ln(10)
