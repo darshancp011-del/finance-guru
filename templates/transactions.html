@@ -48,8 +48,7 @@
 <!-- Add Transaction Form (Glass Inline) -->
 <div class="glass glass-card" style="margin-bottom: 2rem;">
     <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem;">Add Transaction</h3>
-    <form action="{{ url_for('add_transaction') }}" method="POST"
-        style="display: grid; grid-template-columns: repeat(3, 1fr) 1fr; gap: 1.5rem; align-items: start;">
+    <form action="{{ url_for('add_transaction') }}" method="POST" class="transaction-form">
         <div class="input-group" style="margin: 0;">
             <label
                 style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Date</label>
@@ -89,15 +88,16 @@
             </select>
         </div>
 
-        <div class="input-group" style="grid-column: span 2; margin: 0;">
+        <div class="input-group" style="margin: 0;">
             <label
                 style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Description
                 (Optional)</label>
             <input type="text" name="description" placeholder="Add a note">
         </div>
 
-        <div style="display: flex; align-items: flex-end;">
-            <button type="submit" class="btn-primary" style="height: 52px; margin-top: 1.5rem;">Add Transaction</button>
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 0.5rem; color: transparent; font-size: 0.9rem;">Submit</label>
+            <button type="submit" class="btn-primary">Add Transaction</button>
         </div>
     </form>
 </div>

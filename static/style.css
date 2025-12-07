@@ -439,6 +439,20 @@ tr:last-child td {
     color: var(--danger);
 }
 
+/* Transaction Form */
+.transaction-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* Table container for mobile scroll */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .charts-section {
@@ -457,6 +471,8 @@ tr:last-child td {
         width: 280px;
         transition: left 0.3s ease;
         z-index: 1000;
+        height: 100vh;
+        top: 0;
     }
 
     .sidebar.active {
@@ -467,6 +483,7 @@ tr:last-child td {
         margin-left: 0;
         width: 100%;
         padding: 1rem;
+        min-height: 100vh;
     }
 
     .charts-section {
@@ -475,6 +492,7 @@ tr:last-child td {
 
     .dashboard-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .page-title {
@@ -491,12 +509,20 @@ tr:last-child td {
         padding: 1.25rem;
     }
 
+    /* Mobile table - horizontal scroll */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     table {
         font-size: 0.85rem;
+        min-width: 600px;
     }
 
     th, td {
         padding: 0.75rem 0.5rem;
+        white-space: nowrap;
     }
 
     .stat-value {
@@ -513,6 +539,18 @@ tr:last-child td {
         width: 300px !important;
         right: -50px !important;
     }
+
+    /* Form grids on mobile */
+    form[style*="grid-template-columns"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    /* Budget scroll cards */
+    div[style*="overflow-x: auto"] {
+        padding-bottom: 0.5rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -528,15 +566,20 @@ tr:last-child td {
     .auth-box {
         padding: 1.5rem;
         margin: 0.5rem;
+        width: calc(100% - 1rem);
     }
 
     .btn-primary {
         padding: 0.875rem;
     }
 
+    table {
+        min-width: 500px;
+    }
+
     table th, table td {
         padding: 0.5rem 0.25rem;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
     }
 
     .stat-value {
@@ -548,8 +591,77 @@ tr:last-child td {
     }
 
     #notifDropdown {
-        width: 280px !important;
-        right: -100px !important;
+        width: 260px !important;
+        right: -80px !important;
+        max-height: 350px;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+    }
+
+    /* Dashboard stat cards */
+    .dashboard-grid .glass-card {
+        padding: 1rem;
+    }
+
+    /* Quick add button */
+    .quick-add-fab {
+        bottom: 15px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
+    }
+
+    /* Charts smaller on mobile */
+    .chart-container {
+        height: 250px !important;
+    }
+
+    /* Input adjustments */
+    .input-group input,
+    .input-group select,
+    .form-input {
+        padding: 0.875rem;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    /* Brand logo smaller on mobile sidebar */
+    .brand img {
+        width: 80px !important;
+        height: 80px !important;
+    }
+
+    .brand {
+        font-size: 1.1rem;
+    }
+}
+
+/* Extra small phones */
+@media (max-width: 360px) {
+    .main-content {
+        padding: 0.5rem;
+    }
+
+    .glass-card {
+        padding: 0.875rem;
+    }
+
+    .page-title {
+        font-size: 1.1rem;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+    }
+
+    table {
+        font-size: 0.7rem;
+    }
+
+    #notifDropdown {
+        width: 240px !important;
+        right: -60px !important;
     }
 }
 
