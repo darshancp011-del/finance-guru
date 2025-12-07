@@ -1,0 +1,139 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Budget Planning</div>
+</div>
+
+<!-- Add Budget Form (Inline Glass) -->
+<div class="glass glass-card" style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem;">Set Monthly Budget</h3>
+    <form action="{{ url_for('add_budget') }}" method="POST"
+        style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1.5rem; align-items: end;">
+
+        <div class="input-group" style="margin: 0;">
+            <label
+                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Category</label>
+            <input type="text" name="category" placeholder="e.g. Food" required list="categoryList">
+            <datalist id="categoryList">
+                <option value="Food">
+                <option value="Transport">
+                <option value="Shopping">
+                <option value="Salary">
+                <option value="Investments">
+                <option value="Health">
+                <option value="Education">
+                <option value="Entertainment">
+                <option value="Utilities">
+                <option value="Rent">
+                <option value="Misc">
+            </datalist>
+        </div>
+
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Limit
+                Amount</label>
+            <input type="number" step="0.01" name="limit_amount" placeholder="₹ Amount" required>
+        </div>
+
+        <div class="input-group" style="margin: 0;">
+            <label
+                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Month</label>
+            <input type="month" name="month" required value="{{ current_month }}" style="color-scheme: dark;">
+        </div>
+
+        <button type="submit" class="btn-primary" style="height: 52px;">Set Budget</button>
+    </form>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr);">
+    {% for budget in budgets %}
+    <div class="glass glass-card" style="position: relative;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.2rem;">{{ budget.category }}</h3>
+            <span
+                style="font-size: 0.8rem; padding: 0.3rem 0.6rem; background: rgba(255,255,255,0.05); border-radius: 8px; color: var(--text-muted);">{{
+                budget.month }}</span>
+        </div>
+
+        <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; font-size: 0.9rem;">
+            <span style="color: var(--text-muted);">Spent: <span style="color: var(--text-main);">₹{{
+                    "%.0f"|format(budget.spent) }}</span></span>
+            {% if budget.remaining < 0 %} <span style="color: var(--danger);">Over: ₹{{
+                "%.0f"|format(budget.remaining|abs) }}</span>
+                {% else %}
+                <span style="color: var(--text-muted);">Left: <span style="color: var(--success);">₹{{
+                        "%.0f"|format(budget.remaining) }}</span></span>
+                {% endif %}
+        </div>
+
+        <!-- Progress Bar -->
+        {% set percent = budget.percent %}
+        {% set color = 'var(--success)' %}
+        {% if percent > 80 %} {% set color = 'var(--warning)' %} {% endif %}
+        {% if percent > 100 %} {% set color = 'var(--danger)' %} {% endif %}
+
+        <div
+            style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem;">
+            <div
+                style="width: {{ percent if percent <= 100 else 100 }}%; height: 100%; background: {{ color }}; transition: width 0.5s ease;">
+            </div>
+        </div>
+        <div style="text-align: right; font-size: 0.8rem; color: {{ color }}; font-weight: 600;">
+            {{ "%.1f"|format(percent) }}% Used
+        </div>
+
+        <div
+            style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+            <button onclick="openEditBudget('{{ budget.id }}', '{{ budget.category }}', '{{ budget.limit_amount }}')"
+                style="background: none; border: none; color: var(--secondary); cursor: pointer; font-size: 0.9rem; transition: color 0.2s;">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <form action="{{ url_for('delete_budget', id=budget.id) }}" method="POST">
+                <button type="submit"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; transition: color 0.2s;"
+                    onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="glass glass-card"
+        style="grid-column: span 3; text-align: center; color: var(--text-muted); padding: 3rem;">
+        <i class="fas fa-wallet" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p>No budgets set for this month. Set one above!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Edit Budget Modal (Glass) -->
+<div id="editBudgetModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="glass glass-card" style="width: 400px; position: relative;">
+        <h3 style="margin-bottom: 1.5rem;">Edit Budget <span id="editBudgetName"
+                style="font-size: 0.9rem; color: var(--text-muted);"></span></h3>
+        <button onclick="document.getElementById('editBudgetModal').style.display='none'"
+            style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">&times;</button>
+
+        <form action="{{ url_for('update_budget') }}" method="POST">
+            <input type="hidden" name="budget_id" id="editBudgetId">
+            <div class="input-group">
+                <label style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">New
+                    Limit Amount</label>
+                <input type="number" step="0.01" name="limit_amount" id="editBudgetLimit" required>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Update Budget</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditBudget(id, category, limit) {
+        document.getElementById('editBudgetId').value = id;
+        document.getElementById('editBudgetLimit').value = limit;
+        document.getElementById('editBudgetName').innerText = `(${category})`;
+        document.getElementById('editBudgetModal').style.display = 'flex';
+    }
+</script>
+{% endblock %}

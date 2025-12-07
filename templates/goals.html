@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Financial Goals</div>
+</div>
+
+<!-- Goals Summary (Glass) -->
+<div class="glass glass-card"
+    style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(36, 161, 156, 0.2), rgba(0,0,0,0));">
+    <div style="display: flex; gap: 2rem; align-items: center;">
+        <div
+            style="width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--secondary);">
+            <i class="fas fa-piggy-bank"></i>
+        </div>
+        <div>
+            <div style="text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; color: var(--text-muted);">
+                Total Savings</div>
+            <div style="font-size: 2.5rem; font-weight: 700;">₹{{ total_saved }} <span
+                    style="font-size: 1rem; color: var(--text-muted); font-weight: 400;">/ ₹{{ total_target }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Goal Form (Inline Glass) -->
+<div class="glass glass-card" style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem;">Set New Goal</h3>
+    <form action="{{ url_for('add_goal') }}" method="POST"
+        style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Goal
+                Name</label>
+            <input type="text" name="name" placeholder="e.g. New Car" required>
+        </div>
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Target
+                Amount</label>
+            <input type="number" step="0.01" name="target_amount" placeholder="₹ Target" required>
+        </div>
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Current
+                Savings</label>
+            <input type="number" step="0.01" name="current_amount" placeholder="₹ Current" value="0">
+        </div>
+        <div class="input-group" style="margin: 0;">
+            <label
+                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Deadline</label>
+            <input type="date" name="deadline" style="color-scheme: dark;">
+        </div>
+        <button type="submit" class="btn-primary" style="height: 52px;">Create Goal</button>
+    </form>
+</div>
+
+<div class="dashboard-grid">
+    {% for goal in goals %}
+    <div class="glass glass-card" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+            <div>
+                <h3 style="font-size: 1.3rem; margin-bottom: 0.2rem;">{{ goal.name }}</h3>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                    <i class="fas fa-calendar-alt"></i> {{ goal.deadline or 'No Deadline' }}
+                </div>
+            </div>
+            <div
+                style="width: 40px; height: 40px; background: rgba(114, 105, 227, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-trophy" style="color: var(--primary);"></i>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 1.5rem; flex-grow: 1;">
+            <div style="font-size: 2rem; font-weight: 700;">₹{{ goal.current_amount }}</div>
+            <div style="font-size: 0.9rem; color: var(--text-muted);">of ₹{{ goal.target_amount }}</div>
+        </div>
+
+        <!-- Progress Bar -->
+        {% set percent = (goal.current_amount / goal.target_amount * 100) if goal.target_amount > 0 else 0 %}
+        <div
+            style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 1.5rem;">
+            <div
+                style="width: {{ percent if percent <= 100 else 100 }}%; height: 100%; background: linear-gradient(90deg, var(--secondary), var(--primary));">
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <button onclick="openUpdateModal('{{ goal.id }}', '{{ goal.name }}')" class="btn-primary"
+                style="padding: 0.6rem; font-size: 0.85rem;">
+                <i class="fas fa-plus"></i> Add Funds
+            </button>
+            <form action="{{ url_for('delete_goal', id=goal.id) }}" method="POST">
+                <button type="submit" class="btn-primary"
+                    style="background: transparent; border: 1px solid var(--danger); color: var(--danger); width: 100%; padding: 0.6rem; font-size: 0.85rem; transition: background 0.2s;"
+                    onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'"
+                    onmouseout="this.style.background='transparent'">
+                    Delete
+                </button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="glass glass-card"
+        style="grid-column: span 3; text-align: center; color: var(--text-muted); padding: 3rem;">
+        <i class="fas fa-flag" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p>No goals set yet. Start saving for your dreams!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Update Modal (Glass) -->
+<div id="updateGoalModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="glass glass-card" style="width: 350px; position: relative;">
+        <h4 style="margin-bottom: 1.5rem;">Add Funds to <span id="goalNameDisplay"
+                style="color: var(--primary);"></span></h4>
+        <button onclick="document.getElementById('updateGoalModal').style.display='none'"
+            style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">&times;</button>
+
+        <form action="{{ url_for('update_goal') }}" method="POST">
+            <input type="hidden" name="goal_id" id="goalIdInput">
+            <div class="input-group">
+                <label
+                    style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Amount
+                    to Add</label>
+                <input type="number" step="0.01" name="amount" placeholder="₹ 0.00" required>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Update</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openUpdateModal(id, name) {
+        document.getElementById('goalIdInput').value = id;
+        document.getElementById('goalNameDisplay').innerText = name;
+        document.getElementById('updateGoalModal').style.display = 'flex';
+    }
+</script>
+{% endblock %}

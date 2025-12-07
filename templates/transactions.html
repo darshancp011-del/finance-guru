@@ -1,0 +1,181 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Transactions</div>
+</div>
+
+<form method="get" action="{{ url_for('transactions') }}" style="margin-bottom:1.5rem; display: flex; align-items: center; gap: 1rem;">
+    <label for="month" style="color: var(--text-muted);">Select month:</label>
+    <input type="month" id="month" name="month" value="{{ selected_month|default('') }}" style="padding: 0.5rem 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 8px; color: white;">
+    <button type="submit" style="padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">Go</button>
+</form>
+<!-- Active Budgets Scroll -->
+<div style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem; margin-bottom: 2rem;">
+    {% for b in budgets %}
+    <div class="glass glass-card" style="min-width: 200px; padding: 1.25rem;">
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 500;">{{
+            b.category }}</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            {% if b.remaining < 0 %} <div style="font-size: 1.1rem; font-weight: 700; color: var(--danger);">
+                ₹{{ "%.0f"|format(b.remaining|abs) }}
+                <span style="font-size: 0.75rem; color: var(--danger); font-weight: 400;">over</span>
+        </div>
+        {% else %}
+        <div style="font-size: 1.1rem; font-weight: 700;">
+            ₹{{ "%.0f"|format(b.remaining) }}
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400;">left</span>
+        </div>
+        {% endif %}
+        <div style="font-size: 0.8rem; {{ 'color:var(--danger)' if b.percent > 90 else 'color:var(--success)' }}">
+            {{ "%.0f"|format(b.percent) }}%
+        </div>
+    </div>
+    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); margin-top: 0.75rem; border-radius: 3px;">
+        <div
+            style="width: {{ b.percent if b.percent <= 100 else 100 }}%; height: 100%; background: {{ 'var(--danger)' if b.percent > 90 else 'var(--success)' }}; border-radius: 3px;">
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="glass glass-card" style="width: 100%; text-align: center; color: var(--text-muted); padding: 1.5rem;">
+    No active budgets. Go to <a href="{{ url_for('budget') }}" style="color: var(--accent);">Budget Page</a> to set
+    limits.
+</div>
+{% endfor %}
+</div>
+
+<!-- Add Transaction Form (Glass Inline) -->
+<div class="glass glass-card" style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem;">Add Transaction</h3>
+    <form action="{{ url_for('add_transaction') }}" method="POST"
+        style="display: grid; grid-template-columns: repeat(3, 1fr) 1fr; gap: 1.5rem; align-items: start;">
+        <div class="input-group" style="margin: 0;">
+            <label
+                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Date</label>
+            <input type="date" name="date" required value="{{ today }}">
+        </div>
+        <div class="input-group" style="margin: 0;">
+            <label
+                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Amount</label>
+            <input type="number" step="0.01" name="amount" placeholder="0.00" required>
+        </div>
+        <div class="input-group" style="margin: 0;">
+            <label
+                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Type</label>
+            <select name="type" id="txType" onchange="updateCategories()" required
+                style="width: 100%; padding: 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; color: white;">
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+            </select>
+        </div>
+
+        <div class="input-group" style="margin: 0;">
+            <label
+                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Category</label>
+            <input type="text" name="category" id="txCategory" placeholder="e.g. Food" required list="categoryList">
+            <datalist id="categoryList">
+                <!-- Populated by JS -->
+            </datalist>
+        </div>
+
+        <div class="input-group" style="margin: 0;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Payment
+                Method</label>
+            <select name="payment_method"
+                style="width: 100%; padding: 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; color: white;">
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+                <option value="UPI">UPI/Online</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+        </div>
+
+        <div class="input-group" style="grid-column: span 2; margin: 0;">
+            <label
+                style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Description
+                (Optional)</label>
+            <input type="text" name="description" placeholder="Add a note">
+        </div>
+
+        <div style="display: flex; align-items: flex-end;">
+            <button type="submit" class="btn-primary" style="height: 52px; margin-top: 1.5rem;">Add Transaction</button>
+        </div>
+    </form>
+</div>
+
+<!-- Transactions Table (Glass) -->
+<div class="glass glass-card" style="padding: 0;">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Payment</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.date }}</td>
+                    <td>
+                        <span class="badge {{ 'badge-income' if tx.type == 'income' else 'badge-expense' }}">
+                            {{ tx.type|title }}
+                        </span>
+                    </td>
+                    <td>{{ tx.category }}</td>
+                    <td>{{ tx.payment_method }}</td>
+                    <td style="color: var(--text-muted);">{{ tx.description or '-' }}</td>
+                    <td style="{{ 'color:var(--success)' if tx.type == 'income' else 'color:var(--danger)' }}"
+                        style="font-weight: 600;">
+                        {{ '+' if tx.type == 'income' else '-' }} ₹{{ tx.amount }}
+                    </td>
+                    <td style="text-align: right;">
+                        <form action="{{ url_for('delete_transaction', id=tx.id) }}" method="POST"
+                            style="display:inline;">
+                            <button type="submit"
+                                style="background:none; border:none; color: var(--text-muted); cursor: pointer;"><i
+                                    class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No transactions
+                        found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const incomeCats = ["Salary", "Investments", "Freelance", "Gifts", "Rental", "Other"];
+    const expenseCats = ["Food", "Transport", "Shopping", "Health", "Utilities", "Rent", "Entertainment", "Education"];
+
+    function updateCategories() {
+        const type = document.getElementById('txType').value;
+        const list = document.getElementById('categoryList');
+        const input = document.getElementById('txCategory');
+        list.innerHTML = '';
+        input.value = ''; // Clear input on switch
+
+        const cats = type === 'income' ? incomeCats : expenseCats;
+        cats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            list.appendChild(opt);
+        });
+        input.placeholder = type === 'income' ? "Category (e.g. Salary)" : "Category (e.g. Food)";
+    }
+
+    // Init
+    updateCategories();
+</script>
+{% endblock %}

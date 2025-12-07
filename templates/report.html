@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="header">
+    <div class="page-title">Reports & Analytics</div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+    <!-- Income vs Expense Chart -->
+    <div class="glass glass-card">
+        <h3 style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            Income vs Expense
+            <button onclick="downloadChart('cashflowChart')"
+                style="background: none; border: 1px solid var(--glass-border); color: var(--text-muted); padding: 0.3rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">
+                <i class="fas fa-download"></i> PNG
+            </button>
+        </h3>
+        <div style="height: 300px;">
+            <canvas id="cashflowChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Category Expense Chart -->
+    <div class="glass glass-card">
+        <h3 style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            Expense by Category
+            <button onclick="downloadChart('categoryChart')"
+                style="background: none; border: 1px solid var(--glass-border); color: var(--text-muted); padding: 0.3rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">
+                <i class="fas fa-download"></i> PNG
+            </button>
+        </h3>
+        <div style="height: 300px;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="glass glass-card" style="text-align: center; padding: 3rem;">
+    <h2 style="margin-bottom: 2rem;">Download Detailed Reports</h2>
+
+    <div style="display: flex; gap: 2rem; justify-content: center;">
+        <a href="{{ url_for('download_report', type='excel') }}" class="glass"
+            style="display: flex; flex-direction: column; align-items: center; padding: 2rem; text-decoration: none; color: white; width: 150px; transition: 0.3s; background: rgba(30, 200, 80, 0.2);">
+            <i class="fas fa-file-excel" style="font-size: 3rem; margin-bottom: 1rem; color: #2ecc71;"></i>
+            <span>Excel</span>
+        </a>
+
+        <a href="{{ url_for('download_report', type='pdf') }}" class="glass"
+            style="display: flex; flex-direction: column; align-items: center; padding: 2rem; text-decoration: none; color: white; width: 150px; transition: 0.3s; background: rgba(200, 50, 50, 0.2);">
+            <i class="fas fa-file-pdf" style="font-size: 3rem; margin-bottom: 1rem; color: #e74c3c;"></i>
+            <span>PDF</span>
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    async function loadCharts() {
+        const response = await fetch('/api/dashboard_data');
+        const data = await response.json();
+
+        // 1. Income vs Expense (Doughnut)
+        const ctx1 = document.getElementById('cashflowChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: ['Income', 'Expense', 'Balance'],
+                datasets: [{
+                    data: [data.income, data.expense, data.balance],
+                    backgroundColor: ['#2ecc71', '#e74c3c', '#3498db'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: 'white' } }
+                }
+            }
+        });
+
+        // 2. Category Expenses (Bar)
+        const categories = data.categories.map(c => c.category);
+        const amounts = data.categories.map(c => c.total);
+
+        const ctx2 = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Expense',
+                    data: amounts,
+                    backgroundColor: 'rgba(231, 76, 60, 0.6)',
+                    borderColor: '#e74c3c',
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#ccc' } },
+                    x: { grid: { display: false }, ticks: { color: '#ccc' } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function downloadChart(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        const link = document.createElement('a');
+        link.download = `${canvasId}_report.png`;
+        link.href = image;
+        link.click();
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCharts);
+</script>
+{% endblock %}

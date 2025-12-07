@@ -1,0 +1,662 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    .bills-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .bills-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .bill-stat-card {
+        padding: 1.5rem;
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .bill-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+    }
+    
+    .bill-stat-card.pending::before { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+    .bill-stat-card.overdue::before { background: linear-gradient(90deg, #f39c12, #e67e22); }
+    .bill-stat-card.due-soon::before { background: linear-gradient(90deg, #3498db, #2980b9); }
+    .bill-stat-card.total::before { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+    
+    .bill-stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .bill-stat-card.pending .bill-stat-icon { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+    .bill-stat-card.overdue .bill-stat-icon { background: rgba(243, 156, 18, 0.2); color: #f39c12; }
+    .bill-stat-card.due-soon .bill-stat-icon { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+    .bill-stat-card.total .bill-stat-icon { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+    
+    .bill-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+    
+    .bill-stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .bills-container {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 2rem;
+    }
+    
+    @media (max-width: 900px) {
+        .bills-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .add-bill-card {
+        padding: 1.5rem;
+        border-radius: 16px;
+        height: fit-content;
+        position: sticky;
+        top: 1rem;
+    }
+    
+    .add-bill-card h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .add-bill-card h3 i {
+        color: var(--primary);
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: rgba(255,255,255,0.08);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    select.form-control {
+        background: rgba(30, 30, 50, 0.95);
+        cursor: pointer;
+    }
+    
+    select.form-control option {
+        background: #1e1e32;
+        color: #fff;
+        padding: 10px;
+    }
+    
+    .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255,255,255,0.03);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+    
+    .checkbox-wrapper:hover {
+        background: rgba(255,255,255,0.06);
+    }
+    
+    .checkbox-wrapper input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+    }
+    
+    .btn-add-bill {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), #818cf8);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-add-bill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+    
+    .bills-list-card {
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+    
+    .bills-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .bills-list-header h3 {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0;
+    }
+    
+    .bills-list-header h3 i {
+        color: var(--primary);
+    }
+    
+    .filter-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover {
+        background: rgba(255,255,255,0.1);
+    }
+    
+    .filter-btn.active {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .bills-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-height: 600px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+    
+    .bills-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .bills-list::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05);
+        border-radius: 3px;
+    }
+    
+    .bills-list::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.2);
+        border-radius: 3px;
+    }
+    
+    .bill-item {
+        padding: 1.25rem;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .bill-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+    }
+    
+    .bill-item.status-paid::before { background: #2ecc71; }
+    .bill-item.status-overdue::before { background: #e74c3c; }
+    .bill-item.status-due-soon::before { background: #f39c12; }
+    .bill-item.status-pending::before { background: #3498db; }
+    
+    .bill-item:hover {
+        background: rgba(255,255,255,0.06);
+        transform: translateX(4px);
+    }
+    
+    .bill-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .bill-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    
+    .bill-item.status-paid .bill-icon { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+    .bill-item.status-overdue .bill-icon { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+    .bill-item.status-due-soon .bill-icon { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
+    .bill-item.status-pending .bill-icon { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+    
+    .bill-details h4 {
+        margin: 0 0 0.3rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .bill-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .badge-recurring {
+        background: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+    
+    .badge-paid {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+    
+    .badge-overdue {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+    
+    .badge-due-soon {
+        background: rgba(243, 156, 18, 0.2);
+        color: #f39c12;
+    }
+    
+    .bill-meta {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .bill-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .bill-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.75rem;
+    }
+    
+    .bill-amount {
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+    
+    .bill-item.status-paid .bill-amount { color: #2ecc71; }
+    .bill-item.status-overdue .bill-amount { color: #e74c3c; }
+    .bill-item.status-due-soon .bill-amount { color: #f39c12; }
+    .bill-item.status-pending .bill-amount { color: var(--text); }
+    
+    .bill-btns {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .bill-btn {
+        padding: 0.4rem 0.75rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: all 0.3s ease;
+    }
+    
+    .bill-btn-pay {
+        background: rgba(46, 204, 113, 0.15);
+        color: #2ecc71;
+    }
+    
+    .bill-btn-pay:hover {
+        background: rgba(46, 204, 113, 0.3);
+    }
+    
+    .bill-btn-unpay {
+        background: rgba(243, 156, 18, 0.15);
+        color: #f39c12;
+    }
+    
+    .bill-btn-unpay:hover {
+        background: rgba(243, 156, 18, 0.3);
+    }
+    
+    .bill-btn-delete {
+        background: rgba(231, 76, 60, 0.15);
+        color: #e74c3c;
+    }
+    
+    .bill-btn-delete:hover {
+        background: rgba(231, 76, 60, 0.3);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-muted);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.3;
+    }
+    
+    .empty-state h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text);
+    }
+    
+    .empty-state p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="bills-header">
+    <h1 class="page-title" style="margin: 0;">
+        <i class="fas fa-file-invoice-dollar" style="color: var(--primary); margin-right: 0.5rem;"></i>
+        Bills & Payments
+    </h1>
+</div>
+
+<!-- Summary Stats -->
+<div class="bills-stats">
+    <div class="glass bill-stat-card pending">
+        <div class="bill-stat-icon">
+            <i class="fas fa-file-invoice"></i>
+        </div>
+        <div class="bill-stat-value">{{ pending_bills|length }}</div>
+        <div class="bill-stat-label">Pending Bills</div>
+    </div>
+    
+    <div class="glass bill-stat-card overdue">
+        <div class="bill-stat-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="bill-stat-value">{{ overdue_count }}</div>
+        <div class="bill-stat-label">Overdue</div>
+    </div>
+    
+    <div class="glass bill-stat-card due-soon">
+        <div class="bill-stat-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="bill-stat-value">{{ due_soon_count }}</div>
+        <div class="bill-stat-label">Due in 3 Days</div>
+    </div>
+    
+    <div class="glass bill-stat-card total">
+        <div class="bill-stat-icon">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="bill-stat-value">₹{{ "%.0f"|format(total_pending) }}</div>
+        <div class="bill-stat-label">Total Due</div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="bills-container">
+    <!-- Add Bill Form -->
+    <div class="glass add-bill-card">
+        <h3><i class="fas fa-plus-circle"></i> Add New Bill</h3>
+        <form method="POST" action="{{ url_for('add_bill') }}">
+            <div class="form-group">
+                <label><i class="fas fa-tag"></i> Bill Name</label>
+                <input type="text" name="name" placeholder="e.g., Electricity Bill" required class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-rupee-sign"></i> Amount</label>
+                <input type="number" name="amount" step="0.01" min="0" placeholder="0.00" required class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-calendar-alt"></i> Due Date</label>
+                <input type="date" name="due_date" required class="form-control" value="{{ today }}">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-folder"></i> Category</label>
+                <select name="category" class="form-control">
+                    <option value="Utilities">Utilities</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Subscription">Subscription</option>
+                    <option value="Loan/EMI">Loan/EMI</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Phone/Internet">Phone/Internet</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" name="is_recurring" id="is_recurring">
+                    <span><i class="fas fa-sync-alt"></i> Recurring Bill</span>
+                </label>
+            </div>
+            
+            <div class="form-group" id="recurrence_group" style="display: none;">
+                <label><i class="fas fa-redo"></i> Repeat</label>
+                <select name="recurrence" class="form-control">
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-add-bill">
+                <i class="fas fa-plus"></i> Add Bill
+            </button>
+        </form>
+    </div>
+
+    <!-- Bills List -->
+    <div class="glass bills-list-card">
+        <div class="bills-list-header">
+            <h3><i class="fas fa-list-ul"></i> Your Bills</h3>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterBills('all', this)">All</button>
+                <button class="filter-btn" onclick="filterBills('pending', this)">Pending</button>
+                <button class="filter-btn" onclick="filterBills('paid', this)">Paid</button>
+            </div>
+        </div>
+        
+        {% if bills %}
+        <div class="bills-list">
+            {% for bill in bills %}
+            {% set status = 'paid' if bill.is_paid else ('overdue' if bill.is_overdue else ('due-soon' if bill.is_due_soon else 'pending')) %}
+            <div class="bill-item status-{{ status }}" data-status="{{ 'paid' if bill.is_paid else 'pending' }}">
+                <div class="bill-info">
+                    <div class="bill-icon">
+                        {% if bill.category == 'Utilities' %}<i class="fas fa-bolt"></i>
+                        {% elif bill.category == 'Rent' %}<i class="fas fa-home"></i>
+                        {% elif bill.category == 'Insurance' %}<i class="fas fa-shield-alt"></i>
+                        {% elif bill.category == 'Subscription' %}<i class="fas fa-tv"></i>
+                        {% elif bill.category == 'Loan/EMI' %}<i class="fas fa-credit-card"></i>
+                        {% elif bill.category == 'Credit Card' %}<i class="fas fa-wallet"></i>
+                        {% elif bill.category == 'Phone/Internet' %}<i class="fas fa-wifi"></i>
+                        {% else %}<i class="fas fa-file-invoice"></i>
+                        {% endif %}
+                    </div>
+                    <div class="bill-details">
+                        <h4>
+                            {{ bill.name }}
+                            {% if bill.is_recurring %}
+                            <span class="bill-badge badge-recurring"><i class="fas fa-sync-alt"></i> {{ bill.recurrence }}</span>
+                            {% endif %}
+                            {% if bill.is_paid %}
+                            <span class="bill-badge badge-paid"><i class="fas fa-check"></i> Paid</span>
+                            {% elif bill.is_overdue %}
+                            <span class="bill-badge badge-overdue"><i class="fas fa-exclamation"></i> Overdue</span>
+                            {% elif bill.is_due_soon %}
+                            <span class="bill-badge badge-due-soon"><i class="fas fa-clock"></i> Due Soon</span>
+                            {% endif %}
+                        </h4>
+                        <div class="bill-meta">
+                            <span><i class="fas fa-folder"></i> {{ bill.category }}</span>
+                            <span><i class="fas fa-calendar"></i> {{ bill.due_date.strftime('%d %b %Y') }}</span>
+                            {% if not bill.is_paid and bill.days_until is not none %}
+                                {% if bill.days_until < 0 %}
+                                <span style="color: #e74c3c;"><i class="fas fa-exclamation-circle"></i> {{ -bill.days_until }} days late</span>
+                                {% elif bill.days_until == 0 %}
+                                <span style="color: #f39c12;"><i class="fas fa-bell"></i> Due today!</span>
+                                {% elif bill.days_until <= 3 %}
+                                <span style="color: #f39c12;"><i class="fas fa-hourglass-half"></i> {{ bill.days_until }} days left</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="bill-actions">
+                    <div class="bill-amount">₹{{ "%.2f"|format(bill.amount) }}</div>
+                    <div class="bill-btns">
+                        {% if not bill.is_paid %}
+                        <form method="POST" action="{{ url_for('mark_bill_paid', id=bill.id) }}" style="margin: 0;">
+                            <button type="submit" class="bill-btn bill-btn-pay">
+                                <i class="fas fa-check"></i> Mark Paid
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('mark_bill_unpaid', id=bill.id) }}" style="margin: 0;">
+                            <button type="submit" class="bill-btn bill-btn-unpay">
+                                <i class="fas fa-undo"></i> Unpay
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('delete_bill', id=bill.id) }}" style="margin: 0;">
+                            <button type="submit" class="bill-btn bill-btn-delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-file-invoice"></i>
+            <h4>No Bills Yet</h4>
+            <p>Add your first bill to start tracking your payments and never miss a due date!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Toggle recurrence dropdown
+    document.getElementById('is_recurring').addEventListener('change', function() {
+        document.getElementById('recurrence_group').style.display = this.checked ? 'block' : 'none';
+    });
+
+    // Filter bills
+    function filterBills(status, btn) {
+        const items = document.querySelectorAll('.bill-item');
+        const buttons = document.querySelectorAll('.filter-btn');
+        
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        items.forEach(item => {
+            if (status === 'all') {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = item.dataset.status === status ? 'flex' : 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

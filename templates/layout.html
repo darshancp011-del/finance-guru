@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Guru | Dashboard</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-msg flash-{{ category }} glass">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar glass">
+            <div class="brand" style="flex-direction: column; text-align: center;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo"
+                    style="width: 120px; height: 120px; margin-bottom: 10px;">
+                Finance Guru
+            </div>
+
+            <ul class="nav-links">
+                <li><a href="{{ url_for('dashboard') }}"
+                        class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                    </a></li>
+                <li><a href="{{ url_for('transactions') }}"
+                        class="{{ 'active' if request.endpoint == 'transactions' else '' }}">
+                        <i class="fas fa-list"></i> Transactions
+                    </a></li>
+                <li><a href="{{ url_for('bills') }}" class="{{ 'active' if request.endpoint == 'bills' else '' }}">
+                        <i class="fas fa-file-invoice-dollar"></i> Bills
+                    </a></li>
+                <li><a href="{{ url_for('goals') }}" class="{{ 'active' if request.endpoint == 'goals' else '' }}">
+                        <i class="fas fa-bullseye"></i> Goals
+                    </a></li>
+                <li><a href="{{ url_for('budget') }}" class="{{ 'active' if request.endpoint == 'budget' else '' }}">
+                        <i class="fas fa-piggy-bank"></i> Budget
+                    </a></li>
+                <li><a href="{{ url_for('report') }}" class="{{ 'active' if request.endpoint == 'report' else '' }}">
+                        <i class="fas fa-file-download"></i> Reports
+                    </a></li>
+                <li><a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
+                        <i class="fas fa-user-cog"></i> Profile
+                    </a></li>
+            </ul>
+
+            <div class="user-profile">
+                {% if session.get('profile_pic') and session.get('profile_pic') != 'default.png' %}
+                <div class="avatar" style="background: none; border: 2px solid var(--glass-border); overflow: hidden;">
+                    <img src="{{ url_for('static', filename='uploads/' + session['profile_pic']) }}" alt="User"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                {% else %}
+                <div class="avatar">{{ session.get('username', 'U')[0] | upper }}</div>
+                {% endif %}
+                <div class="user-info">
+                    <div style="font-weight: 600;">{{ session.get('username', 'User') }}</div>
+                    <a href="{{ url_for('logout') }}"
+                        style="font-size: 0.8rem; color: var(--danger); text-decoration: none;">Logout</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <div
+                style="display: flex; justify-content: flex-end; margin-bottom: 2rem; align-items: center; gap: 1.5rem;">
+                
+                <!-- Mobile Menu Button -->
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" style="margin-right: auto;">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <!-- Theme Toggle -->
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                
+                <!-- Notification Bell -->
+                <div style="position: relative; cursor: pointer;" id="notifBell">
+                    <i class="fas fa-bell" style="font-size: 1.2rem; color: var(--text-muted);" onclick="toggleNotifications()"></i>
+                    {% if unread_count > 0 %}
+                    <span id="notifBadge"
+                        style="position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: white; font-weight: 600;">{{
+                        unread_count }}</span>
+                    {% endif %}
+
+                    <!-- Dropdown -->
+                    <div id="notifDropdown" class="glass"
+                        style="display: none; position: absolute; right: 0; top: 35px; width: 360px; z-index: 1000; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                        <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                            <h4 style="margin: 0; font-size: 1rem;">Notifications</h4>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button onclick="markRead(event)" title="Mark all as read"
+                                    style="background: none; border: none; color: var(--secondary); cursor: pointer; font-size: 0.85rem; padding: 0.25rem;">
+                                    <i class="fas fa-check-double"></i>
+                                </button>
+                                <button onclick="clearAllNotifications(event)" title="Clear all"
+                                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; padding: 0.25rem;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="notifList" style="max-height: 350px; overflow-y: auto;">
+                            {% for n in notifications %}
+                            <div class="notif-item" data-id="{{ n.id }}"
+                                style="padding: 0.9rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.05); background: {{ 'rgba(114, 105, 227, 0.08)' if not n.is_read else 'transparent' }}; display: flex; gap: 0.75rem; align-items: flex-start; transition: background 0.2s;">
+                                <div class="notif-icon" style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+                                    {% if n.type == 'danger' %}background: rgba(239, 68, 68, 0.15); color: var(--danger);
+                                    {% elif n.type == 'warning' %}background: rgba(245, 158, 11, 0.15); color: #F59E0B;
+                                    {% elif n.type == 'success' %}background: rgba(16, 185, 129, 0.15); color: var(--success);
+                                    {% else %}background: rgba(114, 105, 227, 0.15); color: var(--primary);{% endif %}">
+                                    {% if n.type == 'danger' %}<i class="fas fa-exclamation-circle"></i>
+                                    {% elif n.type == 'warning' %}<i class="fas fa-exclamation-triangle"></i>
+                                    {% elif n.type == 'success' %}<i class="fas fa-check-circle"></i>
+                                    {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+                                </div>
+                                <div style="flex-grow: 1; min-width: 0;">
+                                    <p style="font-size: 0.85rem; margin-bottom: 0.3rem; line-height: 1.4;">{{ n.message }}</p>
+                                    <small style="color: var(--text-muted); font-size: 0.75rem;">{{ n.date.strftime('%b %d, %H:%M') if n.date else '' }}</small>
+                                </div>
+                                <button onclick="deleteNotification(event, {{ n.id }})" title="Delete"
+                                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; padding: 0.25rem; opacity: 0.5; transition: opacity 0.2s;"
+                                    onmouseover="this.style.opacity='1'; this.style.color='var(--danger)'" 
+                                    onmouseout="this.style.opacity='0.5'; this.style.color='var(--text-muted)'">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            {% else %}
+                            <div id="emptyNotif" style="padding: 2.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+                                <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.4;"></i>
+                                <p style="margin: 0;">No notifications yet</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div style="padding: 0.75rem 1.25rem; border-top: 1px solid var(--glass-border); text-align: center;">
+                            <a href="#" onclick="refreshNotifications(event)" style="color: var(--primary); text-decoration: none; font-size: 0.8rem; font-weight: 500;">
+                                <i class="fas fa-sync-alt" style="margin-right: 0.3rem;"></i> Refresh
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-weight: 500;">Hello, {{ session.get('username') }}</div>
+            </div>
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Quick Add Floating Button -->
+    <div id="quickAddBtn" class="quick-add-fab" onclick="toggleQuickAdd()" title="Quick Add (Press 'N')">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <!-- Quick Add Modal -->
+    <div id="quickAddModal" class="quick-add-modal" style="display: none;">
+        <div class="glass quick-add-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;"><i class="fas fa-bolt" style="color: var(--primary); margin-right: 0.5rem;"></i>Quick Add Transaction</h3>
+                <button onclick="toggleQuickAdd()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            <form action="{{ url_for('add_transaction') }}" method="POST" id="quickAddForm">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="input-group" style="margin: 0;">
+                        <select name="type" required style="width: 100%;">
+                            <option value="expense">Expense</option>
+                            <option value="income">Income</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin: 0;">
+                        <input type="number" name="amount" placeholder="Amount" step="0.01" required style="width: 100%;">
+                    </div>
+                </div>
+                <div class="input-group" style="margin-top: 1rem;">
+                    <input type="text" name="category" placeholder="Category (e.g., Food, Transport)" required list="quick-categories">
+                    <datalist id="quick-categories">
+                        <option value="Food">
+                        <option value="Transport">
+                        <option value="Shopping">
+                        <option value="Entertainment">
+                        <option value="Bills">
+                        <option value="Health">
+                        <option value="Salary">
+                        <option value="Freelance">
+                        <option value="Other">
+                    </datalist>
+                </div>
+                <div class="input-group" style="margin-top: 1rem;">
+                    <input type="text" name="description" placeholder="Description (optional)">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <div class="input-group" style="margin: 0;">
+                        <input type="date" name="date" required>
+                    </div>
+                    <div class="input-group" style="margin: 0;">
+                        <select name="payment_method" style="width: 100%;">
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Card</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">
+                    <i class="fas fa-plus" style="margin-right: 0.5rem;"></i>Add Transaction
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcutsModal" class="quick-add-modal" style="display: none;">
+        <div class="glass quick-add-content" style="max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;"><i class="fas fa-keyboard" style="color: var(--primary); margin-right: 0.5rem;"></i>Keyboard Shortcuts</h3>
+                <button onclick="toggleShortcuts()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>N</kbd></span>
+                    <span>New Transaction (Quick Add)</span>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>D</kbd></span>
+                    <span>Go to Dashboard</span>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>T</kbd></span>
+                    <span>Go to Transactions</span>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>B</kbd></span>
+                    <span>Go to Bills</span>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>G</kbd></span>
+                    <span>Go to Goals</span>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>R</kbd></span>
+                    <span>Go to Reports</span>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>P</kbd></span>
+                    <span>Go to Profile</span>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>?</kbd></span>
+                    <span>Show this help</span>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-keys"><kbd>Esc</kbd></span>
+                    <span>Close modals</span>
+                </div>
+            </div>
+            <p style="margin-top: 1.5rem; color: var(--text-muted); font-size: 0.85rem; text-align: center;">
+                <i class="fas fa-info-circle"></i> Shortcuts are disabled when typing in input fields
+            </p>
+        </div>
+    </div>
+
+    <!-- Notification Sound (Simple Beep) -->
+    <script>
+        function toggleNotifications() {
+            const dd = document.getElementById('notifDropdown');
+            if (dd.style.display === 'none' || dd.style.display === '') {
+                dd.style.display = 'block';
+            } else {
+                dd.style.display = 'none';
+            }
+        }
+
+        function markRead(e) {
+            e.stopPropagation();
+            fetch("{{ url_for('mark_read') }}", { method: 'POST' })
+                .then(() => {
+                    // Update UI without reload
+                    const badge = document.getElementById('notifBadge');
+                    if (badge) badge.remove();
+                    document.querySelectorAll('.notif-item').forEach(item => {
+                        item.style.background = 'transparent';
+                    });
+                });
+        }
+
+        function deleteNotification(e, id) {
+            e.stopPropagation();
+            const item = e.target.closest('.notif-item');
+            if (item) {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(20px)';
+                item.style.transition = 'all 0.3s ease';
+            }
+            fetch(`/delete_notification/${id}`, { method: 'POST' })
+                .then(() => {
+                    setTimeout(() => {
+                        if (item) item.remove();
+                        // Check if list is empty
+                        const list = document.getElementById('notifList');
+                        if (list && !list.querySelector('.notif-item')) {
+                            list.innerHTML = `<div id="emptyNotif" style="padding: 2.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+                                <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.4;"></i>
+                                <p style="margin: 0;">No notifications yet</p>
+                            </div>`;
+                        }
+                        updateBadgeCount();
+                    }, 300);
+                });
+        }
+
+        function clearAllNotifications(e) {
+            e.stopPropagation();
+            if (!confirm('Clear all notifications?')) return;
+            
+            fetch("{{ url_for('clear_notifications') }}", { method: 'POST' })
+                .then(() => {
+                    const list = document.getElementById('notifList');
+                    if (list) {
+                        list.innerHTML = `<div id="emptyNotif" style="padding: 2.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+                            <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.4;"></i>
+                            <p style="margin: 0;">No notifications yet</p>
+                        </div>`;
+                    }
+                    const badge = document.getElementById('notifBadge');
+                    if (badge) badge.remove();
+                });
+        }
+
+        function refreshNotifications(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fetch('/api/notifications')
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById('notifList');
+                    if (!list) return;
+                    
+                    if (data.notifications.length === 0) {
+                        list.innerHTML = `<div id="emptyNotif" style="padding: 2.5rem 1.5rem; text-align: center; color: var(--text-muted);">
+                            <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.4;"></i>
+                            <p style="margin: 0;">No notifications yet</p>
+                        </div>`;
+                    } else {
+                        list.innerHTML = data.notifications.map(n => {
+                            const iconClass = n.type === 'danger' ? 'fa-exclamation-circle' : 
+                                             n.type === 'warning' ? 'fa-exclamation-triangle' : 
+                                             n.type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+                            const iconStyle = n.type === 'danger' ? 'background: rgba(239, 68, 68, 0.15); color: var(--danger);' :
+                                             n.type === 'warning' ? 'background: rgba(245, 158, 11, 0.15); color: #F59E0B;' :
+                                             n.type === 'success' ? 'background: rgba(16, 185, 129, 0.15); color: var(--success);' :
+                                             'background: rgba(114, 105, 227, 0.15); color: var(--primary);';
+                            return `<div class="notif-item" data-id="${n.id}"
+                                style="padding: 0.9rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.05); background: ${!n.is_read ? 'rgba(114, 105, 227, 0.08)' : 'transparent'}; display: flex; gap: 0.75rem; align-items: flex-start; transition: background 0.2s;">
+                                <div class="notif-icon" style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; ${iconStyle}">
+                                    <i class="fas ${iconClass}"></i>
+                                </div>
+                                <div style="flex-grow: 1; min-width: 0;">
+                                    <p style="font-size: 0.85rem; margin-bottom: 0.3rem; line-height: 1.4;">${n.message}</p>
+                                    <small style="color: var(--text-muted); font-size: 0.75rem;">${n.date || ''}</small>
+                                </div>
+                                <button onclick="deleteNotification(event, ${n.id})" title="Delete"
+                                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; padding: 0.25rem; opacity: 0.5; transition: opacity 0.2s;"
+                                    onmouseover="this.style.opacity='1'; this.style.color='var(--danger)'" 
+                                    onmouseout="this.style.opacity='0.5'; this.style.color='var(--text-muted)'">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>`;
+                        }).join('');
+                    }
+                    
+                    // Update badge
+                    updateBadge(data.unread_count);
+                });
+        }
+
+        function updateBadgeCount() {
+            fetch('/api/notifications')
+                .then(res => res.json())
+                .then(data => updateBadge(data.unread_count));
+        }
+
+        function updateBadge(count) {
+            let badge = document.getElementById('notifBadge');
+            const bell = document.querySelector('#notifBell');
+            
+            if (count > 0) {
+                if (!badge && bell) {
+                    badge = document.createElement('span');
+                    badge.id = 'notifBadge';
+                    badge.style.cssText = 'position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: white; font-weight: 600;';
+                    bell.appendChild(badge);
+                }
+                if (badge) badge.textContent = count > 9 ? '9+' : count;
+            } else if (badge) {
+                badge.remove();
+            }
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function (event) {
+            if (!event.target.closest('#notifBell')) {
+                const dd = document.getElementById('notifDropdown');
+                if (dd && dd.style.display === 'block') {
+                    dd.style.display = 'none';
+                }
+            }
+        }
+
+        // Simple Beep function using Web Audio API to avoid external file dependencies
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+            } catch (e) {
+                console.error("Audio play failed", e);
+            }
+        }
+
+        // Poll for new notifications every 60 seconds
+        setInterval(() => {
+            fetch('/api/notifications')
+                .then(res => res.json())
+                .then(data => {
+                    const currentBadge = document.getElementById('notifBadge');
+                    const currentCount = currentBadge ? parseInt(currentBadge.textContent) : 0;
+                    if (data.unread_count > currentCount) {
+                        playBeep(); // Play sound for new notifications
+                    }
+                    updateBadge(data.unread_count);
+                })
+                .catch(() => {});
+        }, 60000);
+    </script>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Auto hide flash messages
+        setTimeout(() => {
+            const flashes = document.querySelectorAll('.flash-msg');
+            flashes.forEach(f => {
+                // Don't auto-hide warned messages immediately so user sees them
+                if (!f.classList.contains('flash-warning_sound')) {
+                    f.style.opacity = '0';
+                    setTimeout(() => f.remove(), 500);
+                }
+            });
+        }, 5000);
+
+        // Check for warning sound
+        document.addEventListener('DOMContentLoaded', () => {
+            const warnings = document.querySelectorAll('.flash-warning_sound');
+            if (warnings.length > 0) {
+                playBeep();
+            }
+        });
+
+        // ===== THEME TOGGLE =====
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+            
+            // Save to server for persistence
+            fetch('/api/set_theme', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ theme: newTheme })
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        }
+
+        // Load saved theme on page load
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || '{{ session.get("theme", "dark") }}';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        })();
+
+        // ===== MOBILE SIDEBAR =====
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
+        // ===== SESSION TIMEOUT (10 minutes) =====
+        let lastActivity = Date.now();
+        const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+        function resetActivityTimer() {
+            lastActivity = Date.now();
+        }
+
+        // Track user activity
+        ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach(event => {
+            document.addEventListener(event, resetActivityTimer, { passive: true });
+        });
+
+        // Check for inactivity every minute
+        setInterval(() => {
+            if (Date.now() - lastActivity > SESSION_TIMEOUT) {
+                // Show warning and redirect to logout
+                alert('Your session has expired due to inactivity. You will be logged out.');
+                window.location.href = '{{ url_for("logout") }}';
+            }
+        }, 60000); // Check every minute
+
+        // Also ping server to update session activity
+        setInterval(() => {
+            if (Date.now() - lastActivity < SESSION_TIMEOUT) {
+                fetch('/api/ping_session', { method: 'POST' }).catch(() => {});
+            }
+        }, 5 * 60 * 1000); // Ping every 5 minutes if active
+
+        // ===== QUICK ADD TRANSACTION =====
+        function toggleQuickAdd() {
+            const modal = document.getElementById('quickAddModal');
+            const fab = document.getElementById('quickAddBtn');
+            
+            if (modal.style.display === 'none' || modal.style.display === '') {
+                modal.style.display = 'flex';
+                fab.classList.add('active');
+                // Set default date to today
+                const dateInput = document.querySelector('#quickAddForm input[name="date"]');
+                if (dateInput) {
+                    dateInput.value = new Date().toISOString().split('T')[0];
+                }
+                // Focus on amount field
+                setTimeout(() => {
+                    const amountInput = document.querySelector('#quickAddForm input[name="amount"]');
+                    if (amountInput) amountInput.focus();
+                }, 100);
+            } else {
+                modal.style.display = 'none';
+                fab.classList.remove('active');
+            }
+        }
+
+        // Close quick add modal on outside click
+        document.getElementById('quickAddModal')?.addEventListener('click', function(e) {
+            if (e.target === this) toggleQuickAdd();
+        });
+
+        // ===== KEYBOARD SHORTCUTS =====
+        function toggleShortcuts() {
+            const modal = document.getElementById('shortcutsModal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // Close shortcuts modal on outside click
+        document.getElementById('shortcutsModal')?.addEventListener('click', function(e) {
+            if (e.target === this) toggleShortcuts();
+        });
+
+        // Keyboard shortcuts handler
+        document.addEventListener('keydown', function(e) {
+            // Don't trigger shortcuts when typing in inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                if (e.key === 'Escape') {
+                    e.target.blur();
+                }
+                return;
+            }
+
+            // Close modals on Escape
+            if (e.key === 'Escape') {
+                const quickAddModal = document.getElementById('quickAddModal');
+                const shortcutsModal = document.getElementById('shortcutsModal');
+                if (quickAddModal && quickAddModal.style.display === 'flex') {
+                    toggleQuickAdd();
+                    return;
+                }
+                if (shortcutsModal && shortcutsModal.style.display === 'flex') {
+                    toggleShortcuts();
+                    return;
+                }
+                closeSidebar();
+                return;
+            }
+
+            // Don't trigger if modifier keys are pressed
+            if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+            switch(e.key.toLowerCase()) {
+                case 'n':
+                    e.preventDefault();
+                    toggleQuickAdd();
+                    break;
+                case 'd':
+                    e.preventDefault();
+                    window.location.href = '{{ url_for("dashboard") }}';
+                    break;
+                case 't':
+                    e.preventDefault();
+                    window.location.href = '{{ url_for("transactions") }}';
+                    break;
+                case 'b':
+                    e.preventDefault();
+                    window.location.href = '{{ url_for("bills") }}';
+                    break;
+                case 'g':
+                    e.preventDefault();
+                    window.location.href = '{{ url_for("goals") }}';
+                    break;
+                case 'r':
+                    e.preventDefault();
+                    window.location.href = '{{ url_for("report") }}';
+                    break;
+                case 'p':
+                    e.preventDefault();
+                    window.location.href = '{{ url_for("profile") }}';
+                    break;
+                case '?':
+                    e.preventDefault();
+                    toggleShortcuts();
+                    break;
+            }
+        });
+    </script>
+</body>
+
+</html>
