@@ -1628,40 +1628,8 @@ def download_report(type):
                 df_budgets.to_excel(writer, index=False, sheet_name='Budgets')
             if not df_bills.empty:
                 df_bills.to_excel(writer, index=False, sheet_name='Bills')
-        # Generate charts
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Bar chart: Monthly expenses
-            df_transactions['month'] = pd.to_datetime(df_transactions['date']).dt.strftime('%b %Y')
-            monthly = df_transactions[df_transactions['type']=='Expense'].groupby('month')['amount'].sum()
-            plt.figure(figsize=(6,3))
-            monthly.plot(kind='bar', color='#7269e3')
-            plt.title('Monthly Expenses')
-            plt.ylabel('Amount')
-            bar_path = os.path.join(tmpdir, 'bar_chart.png')
-            plt.tight_layout()
-            plt.savefig(bar_path)
-            plt.close()
-            # Pie chart: Category expenses
-            cat = df_transactions[df_transactions['type']=='Expense'].groupby('category')['amount'].sum()
-            plt.figure(figsize=(4,4))
-            cat.plot(kind='pie', autopct='%1.1f%%', colors=plt.cm.Pastel1.colors)
-            plt.title('Expenses by Category')
-            pie_path = os.path.join(tmpdir, 'pie_chart.png')
-            plt.tight_layout()
-            plt.savefig(pie_path)
-            plt.close()
-            # Insert images into Excel
-            output.seek(0)
-            wb = load_workbook(output)
-            ws = wb.create_sheet('Charts')
-            img1 = XLImage(bar_path)
-            img2 = XLImage(pie_path)
-            ws.add_image(img1, 'A1')
-            ws.add_image(img2, 'A20')
-            output2 = BytesIO()
-            wb.save(output2)
-            output2.seek(0)
-        return send_file(output2, download_name='finance_report.xlsx', as_attachment=True)
+        output.seek(0)
+        return send_file(output, download_name='finance_report.xlsx', as_attachment=True)
     elif type == 'pdf':
         class PDF(FPDF):
             def header(self):
@@ -1734,36 +1702,6 @@ def download_report(type):
                 pdf.cell(col_widths_bl[3], 10, str(bill['Category']), 1)
                 pdf.cell(col_widths_bl[4], 10, 'Paid' if bill['Paid'] else 'Pending', 1)
                 pdf.ln()
-        # Generate and insert charts
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Bar chart: Monthly expenses
-            df_transactions['month'] = pd.to_datetime(df_transactions['date']).dt.strftime('%b %Y')
-            monthly = df_transactions[df_transactions['type']=='Expense'].groupby('month')['amount'].sum()
-            plt.figure(figsize=(6,3))
-            monthly.plot(kind='bar', color='#7269e3')
-            plt.title('Monthly Expenses')
-            plt.ylabel('Amount')
-            bar_path = os.path.join(tmpdir, 'bar_chart.png')
-            plt.tight_layout()
-            plt.savefig(bar_path)
-            plt.close()
-            # Pie chart: Category expenses
-            cat = df_transactions[df_transactions['type']=='Expense'].groupby('category')['amount'].sum()
-            plt.figure(figsize=(4,4))
-            cat.plot(kind='pie', autopct='%1.1f%%', colors=plt.cm.Pastel1.colors)
-            plt.title('Expenses by Category')
-            pie_path = os.path.join(tmpdir, 'pie_chart.png')
-            plt.tight_layout()
-            plt.savefig(pie_path)
-            plt.close()
-            # Insert images into PDF
-            pdf.add_page()
-            pdf.set_font('helvetica', 'B', 13)
-            pdf.cell(0, 10, 'Monthly Expenses Chart', 0, 1, 'C')
-            pdf.image(bar_path, x=30, w=150)
-            pdf.ln(10)
-            pdf.cell(0, 10, 'Expenses by Category', 0, 1, 'C')
-            pdf.image(pie_path, x=60, w=90)
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
             pdf.output(tmp.name)
             tmp_path = tmp.name
