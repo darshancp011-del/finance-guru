@@ -53,12 +53,15 @@ mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('application/javascript', '.js')
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # --- Components ---
 
 def get_user_by_email(email):
     conn = get_db_connection()
+    if conn is None:
+        print("Error: Could not connect to database in get_user_by_email")
+        return None
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
     user = cursor.fetchone()
@@ -69,6 +72,9 @@ def get_user_by_email(email):
 def create_user(username, email, password, initial_balance=0):
     hash_pwd = hashlib.sha256(password.encode()).hexdigest()
     conn = get_db_connection()
+    if conn is None:
+        print("Error: Could not connect to database in create_user")
+        return False
     cursor = conn.cursor()
     try:
         cursor.execute("INSERT INTO users (username, email, password_hash, initial_balance) VALUES (%s, %s, %s, %s)",
@@ -91,6 +97,7 @@ def create_user(username, email, password, initial_balance=0):
         
         return True
     except mysql.connector.Error as err:
+        print(f"Database error in create_user: {err}")
         return False
     finally:
         cursor.close()
@@ -114,6 +121,47 @@ ensure_transaction_soft_delete()
 
 # Ensure user profile columns exist at startup
 ensure_user_profile_columns()
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint to verify database connection"""
+    import os
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'Could not connect to database',
+                'env_vars': {
+                    'DB_HOST': os.environ.get('DB_HOST', 'NOT SET'),
+                    'DB_USER': os.environ.get('DB_USER', 'NOT SET'),
+                    'DB_NAME': os.environ.get('DB_NAME', 'NOT SET'),
+                    'DB_PASSWORD': '***' if os.environ.get('DB_PASSWORD') else 'NOT SET'
+                }
+            }), 500
+        
+        cursor = conn.cursor()
+        cursor.execute("SHOW TABLES")
+        tables = [t[0] for t in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'status': 'ok',
+            'database': 'connected',
+            'tables': tables,
+            'env_vars': {
+                'DB_HOST': os.environ.get('DB_HOST', 'NOT SET'),
+                'DB_USER': os.environ.get('DB_USER', 'NOT SET'),
+                'DB_NAME': os.environ.get('DB_NAME', 'NOT SET'),
+                'DB_PASSWORD': '***' if os.environ.get('DB_PASSWORD') else 'NOT SET'
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 @app.route('/')
 def home():
