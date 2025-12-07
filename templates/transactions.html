@@ -7,7 +7,7 @@
 
 <form method="get" action="{{ url_for('transactions') }}" style="margin-bottom:1.5rem; display: flex; align-items: center; gap: 1rem;">
     <label for="month" style="color: var(--text-muted);">Select month:</label>
-    <input type="month" id="month" name="month" value="{{ selected_month|default('') }}" style="padding: 0.5rem 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 8px; color: white;">
+    <input type="month" id="month" name="month" value="{{ selected_month|default('') }}" class="form-input" style="padding: 0.5rem 1rem;">
     <button type="submit" style="padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">Go</button>
 </form>
 <!-- Active Budgets Scroll -->
@@ -63,8 +63,7 @@
         <div class="input-group" style="margin: 0;">
             <label
                 style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Type</label>
-            <select name="type" id="txType" onchange="updateCategories()" required
-                style="width: 100%; padding: 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; color: white;">
+            <select name="type" id="txType" onchange="updateCategories()" required class="form-input">
                 <option value="expense">Expense</option>
                 <option value="income">Income</option>
             </select>
@@ -82,8 +81,7 @@
         <div class="input-group" style="margin: 0;">
             <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">Payment
                 Method</label>
-            <select name="payment_method"
-                style="width: 100%; padding: 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; color: white;">
+            <select name="payment_method" class="form-input">
                 <option value="Cash">Cash</option>
                 <option value="Card">Card</option>
                 <option value="UPI">UPI/Online</option>
