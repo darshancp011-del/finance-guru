@@ -166,15 +166,39 @@
                     </div>
                 </div>
 
-                <div style="font-weight: 500;">Hello, {{ session.get('username') }}</div>
+                <div style="font-weight: 500;" class="desktop-greeting">Hello, {{ session.get('username') }}</div>
             </div>
 
             {% block content %}{% endblock %}
         </main>
     </div>
 
-    <!-- Quick Add Floating Button -->
-    <div id="quickAddBtn" class="quick-add-fab" onclick="toggleQuickAdd()" title="Quick Add (Press 'N')">
+    <!-- Mobile Bottom Navigation (Phone Only) -->
+    <nav class="mobile-bottom-nav">
+        <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('transactions') }}" class="{{ 'active' if request.endpoint == 'transactions' else '' }}">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Transactions</span>
+        </a>
+        <a href="#" class="nav-add-btn" onclick="toggleQuickAdd(); return false;">
+            <i class="fas fa-plus"></i>
+            <span>Add</span>
+        </a>
+        <a href="{{ url_for('budget') }}" class="{{ 'active' if request.endpoint == 'budget' else '' }}">
+            <i class="fas fa-wallet"></i>
+            <span>Budget</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <!-- Quick Add Floating Button (Desktop Only) -->
+    <div id="quickAddBtn" class="quick-add-fab desktop-only" onclick="toggleQuickAdd()" title="Quick Add (Press 'N')">
         <i class="fas fa-plus"></i>
     </div>
 

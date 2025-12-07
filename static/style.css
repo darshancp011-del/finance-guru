@@ -496,187 +496,364 @@ tr:last-child td {
     }
 }
 
+/* ============================================
+   MOBILE PHONE DESIGN - Complete Redesign
+   ============================================ */
 @media (max-width: 768px) {
+    /* Hide sidebar on mobile - use bottom nav instead */
     .sidebar {
-        position: fixed;
-        left: -280px;
-        width: 280px;
-        transition: left 0.3s ease;
-        z-index: 1000;
-        height: 100vh;
-        top: 0;
+        display: none !important;
     }
 
-    .sidebar.active {
-        left: 0;
-    }
-
+    /* Full width main content */
     .main-content {
         margin-left: 0;
         width: 100%;
         padding: 1rem;
+        padding-bottom: 100px; /* Space for bottom nav */
         min-height: 100vh;
+        background: var(--dark-bg);
     }
 
-    .charts-section {
-        grid-template-columns: 1fr;
-    }
-
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+    /* Mobile Header - App style */
+    .header {
+        position: sticky;
+        top: 0;
+        background: var(--dark-bg);
+        padding: 1rem;
+        margin: -1rem -1rem 1.25rem -1rem;
+        z-index: 50;
+        border-bottom: 1px solid var(--glass-border);
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .page-title {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
     }
 
-    .header {
+    /* Mobile Cards - Modern rounded style */
+    .glass-card {
+        padding: 1.25rem;
+        border-radius: 20px;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+        border: 1px solid var(--glass-border);
+    }
+
+    /* Stats Cards - Column layout */
+    .dashboard-grid {
+        display: flex !important;
         flex-direction: column;
-        align-items: flex-start;
         gap: 1rem;
     }
 
-    .glass-card {
-        padding: 1.25rem;
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
     }
 
-    /* Mobile table - horizontal scroll */
+    .stat-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.8;
+    }
+
+    /* Charts - Full width with proper height */
+    .charts-section {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .chart-container {
+        height: 260px !important;
+        padding: 1rem;
+        border-radius: 18px;
+        background: var(--card-bg);
+        border: 1px solid var(--glass-border);
+    }
+
+    /* Card titles mobile */
+    .card h3,
+    .glass-card h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    /* Tables - Smooth scroll */
     .table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        border-radius: 16px;
+        background: var(--card-bg);
     }
 
     table {
         font-size: 0.85rem;
-        min-width: 600px;
+        min-width: 480px;
     }
 
     th, td {
-        padding: 0.75rem 0.5rem;
-        white-space: nowrap;
+        padding: 0.875rem 0.6rem;
     }
 
-    .stat-value {
-        font-size: 1.5rem;
+    th {
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
     }
 
-    /* Mobile menu button */
-    .mobile-menu-btn {
-        display: flex !important;
-    }
-
-    /* Hide notification dropdown width adjustment */
-    #notifDropdown {
-        width: 300px !important;
-        right: -50px !important;
-    }
-
-    /* Form grids on mobile */
-    form[style*="grid-template-columns"] {
+    /* Forms - Full width, pill-style inputs */
+    form {
         display: flex !important;
         flex-direction: column !important;
         gap: 1rem !important;
     }
 
-    /* Budget scroll cards */
-    div[style*="overflow-x: auto"] {
-        padding-bottom: 0.5rem;
+    .input-group {
+        width: 100%;
+    }
+
+    .input-group input,
+    .input-group select,
+    .form-input,
+    textarea {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        font-size: 16px;
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+        background: var(--glass-bg);
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 16px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    /* Notification dropdown */
+    #notifDropdown {
+        width: 92vw !important;
+        left: 4vw !important;
+        right: 4vw !important;
+        max-height: 65vh;
+        border-radius: 20px;
+    }
+
+    /* Quick add FAB - hide on mobile, using bottom nav instead */
+    .quick-add-fab {
+        display: none !important;
+    }
+
+    /* Hide desktop elements */
+    .desktop-only,
+    .desktop-greeting {
+        display: none !important;
+    }
+
+    /* Mobile menu button hide - using bottom nav */
+    .mobile-menu-btn {
+        display: none !important;
+    }
+
+    /* Badges on mobile */
+    .badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
     }
 }
 
+/* ============================================
+   BOTTOM NAVIGATION - Mobile App Style
+   ============================================ */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    padding: 0.6rem 0.5rem;
+    padding-bottom: calc(0.6rem + env(safe-area-inset-bottom));
+    z-index: 1000;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 24px 24px 0 0;
+}
+
+[data-theme="light"] .mobile-bottom-nav {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+@media (max-width: 768px) {
+    .mobile-bottom-nav {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+    }
+}
+
+.mobile-bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-radius: 14px;
+    position: relative;
+}
+
+.mobile-bottom-nav a i {
+    font-size: 1.3rem;
+    transition: all 0.2s ease;
+}
+
+.mobile-bottom-nav a.active,
+.mobile-bottom-nav a:hover {
+    color: var(--primary);
+    background: rgba(114, 105, 227, 0.1);
+}
+
+.mobile-bottom-nav a.active i {
+    transform: scale(1.15);
+}
+
+/* Mobile nav center button (add) */
+.mobile-bottom-nav .nav-add-btn {
+    background: linear-gradient(135deg, var(--primary), #5b50d6);
+    color: white !important;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -30px;
+    box-shadow: 0 6px 20px rgba(114, 105, 227, 0.5);
+    border: 4px solid var(--dark-bg);
+}
+
+[data-theme="light"] .mobile-bottom-nav .nav-add-btn {
+    border-color: #f0f4f8;
+}
+
+.mobile-bottom-nav .nav-add-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(114, 105, 227, 0.6);
+}
+
+.mobile-bottom-nav .nav-add-btn i {
+    font-size: 1.6rem;
+}
+
+.mobile-bottom-nav .nav-add-btn span {
+    display: none;
+}
+
+/* ============================================
+   EXTRA SMALL PHONES (below 480px)
+   ============================================ */
 @media (max-width: 480px) {
     .main-content {
-        padding: 0.75rem;
+        padding: 0.875rem;
+        padding-bottom: 100px;
+    }
+
+    .header {
+        padding: 0.875rem;
+        margin: -0.875rem -0.875rem 1rem -0.875rem;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
     }
 
     .glass-card {
         padding: 1rem;
-        border-radius: 12px;
-    }
-
-    .auth-box {
-        padding: 1.5rem;
-        margin: 0.5rem;
-        width: calc(100% - 1rem);
-    }
-
-    .btn-primary {
-        padding: 0.875rem;
-    }
-
-    table {
-        min-width: 500px;
-    }
-
-    table th, table td {
-        padding: 0.5rem 0.25rem;
-        font-size: 0.75rem;
+        border-radius: 18px;
     }
 
     .stat-value {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
     }
 
     .stat-label {
         font-size: 0.75rem;
     }
 
-    #notifDropdown {
-        width: 260px !important;
-        right: -80px !important;
-        max-height: 350px;
-    }
-
-    .page-title {
-        font-size: 1.25rem;
-    }
-
-    /* Dashboard stat cards */
-    .dashboard-grid .glass-card {
-        padding: 1rem;
-    }
-
-    /* Quick add button */
-    .quick-add-fab {
-        bottom: 15px;
-        right: 15px;
-        width: 50px;
-        height: 50px;
-    }
-
-    /* Charts smaller on mobile */
     .chart-container {
-        height: 250px !important;
-    }
-
-    /* Input adjustments */
-    .input-group input,
-    .input-group select,
-    .form-input {
+        height: 230px !important;
         padding: 0.875rem;
-        font-size: 16px; /* Prevents iOS zoom on focus */
+        border-radius: 16px;
     }
 
-    /* Brand logo smaller on mobile sidebar */
-    .brand img {
-        width: 80px !important;
-        height: 80px !important;
+    table {
+        font-size: 0.8rem;
     }
 
-    .brand {
-        font-size: 1.1rem;
+    #notifDropdown {
+        width: 94vw !important;
+        left: 3vw !important;
+        right: 3vw !important;
+        border-radius: 18px;
+    }
+
+    .mobile-bottom-nav {
+        padding: 0.5rem;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .mobile-bottom-nav a {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.65rem;
+    }
+
+    .mobile-bottom-nav a i {
+        font-size: 1.2rem;
+    }
+
+    .mobile-bottom-nav .nav-add-btn {
+        width: 52px;
+        height: 52px;
+        margin-top: -26px;
+    }
+
+    .mobile-bottom-nav .nav-add-btn i {
+        font-size: 1.4rem;
     }
 }
 
-/* Extra small phones */
+/* ============================================
+   VERY SMALL PHONES (below 360px)
+   ============================================ */
 @media (max-width: 360px) {
     .main-content {
-        padding: 0.5rem;
+        padding: 0.75rem;
+        padding-bottom: 95px;
     }
 
     .glass-card {
         padding: 0.875rem;
+        border-radius: 16px;
     }
 
     .page-title {
@@ -684,16 +861,22 @@ tr:last-child td {
     }
 
     .stat-value {
-        font-size: 1.1rem;
+        font-size: 1.35rem;
     }
 
-    table {
-        font-size: 0.7rem;
+    .chart-container {
+        height: 200px !important;
     }
 
-    #notifDropdown {
-        width: 240px !important;
-        right: -60px !important;
+    .btn-primary {
+        padding: 0.875rem;
+        font-size: 0.95rem;
+    }
+
+    .mobile-bottom-nav .nav-add-btn {
+        width: 48px;
+        height: 48px;
+        margin-top: -24px;
     }
 }
 
