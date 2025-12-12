@@ -1290,6 +1290,14 @@ def add_goal():
         conn.commit()
     except:
         pass
+
+    # If initial amount > 0, record as transaction
+    if float(current) > 0:
+        cursor.execute("""
+            INSERT INTO transactions (user_id, type, category, amount, date, description, payment_method)
+            VALUES (%s, 'expense', 'Financial Goal', %s, CURDATE(), %s, 'Savings')
+        """, (user_id, current, f"Initial deposit for goal: {name}"))
+        conn.commit()
     
     cursor.close()
     conn.close()
@@ -1316,6 +1324,17 @@ def update_goal():
         target = float(goal['target_amount'])
         
         cursor.execute("UPDATE goals SET current_amount = %s WHERE id = %s", (new_amount, goal_id))
+        conn.commit()
+        
+        # Record transaction
+        tx_type = 'expense' if amount > 0 else 'income'
+        tx_desc = f"Added to goal: {goal['name']}" if amount > 0 else f"Withdrawn from goal: {goal['name']}"
+        abs_amount = abs(amount)
+        
+        cursor.execute("""
+            INSERT INTO transactions (user_id, type, category, amount, date, description, payment_method)
+            VALUES (%s, %s, 'Financial Goal', %s, CURDATE(), %s, 'Savings')
+        """, (user_id, tx_type, abs_amount, tx_desc))
         conn.commit()
         
         # Check if goal is now complete
@@ -1633,75 +1652,129 @@ def download_report(type):
     elif type == 'pdf':
         class PDF(FPDF):
             def header(self):
+                # Accent Color Line
+                self.set_fill_color(114, 105, 227) # Primary
+                self.rect(0, 0, 210, 5, 'F')
+                
+                self.set_y(15)
+                # Logo
                 try:
                     logo_path = os.path.join(app.root_path, 'static', 'logo.png')
                     if os.path.exists(logo_path):
-                        img_width = 150
-                        x = (self.w - img_width) / 2
-                        y = (self.h - img_width) / 2
-                        self.image(logo_path, x=x, y=y, w=img_width)
-                except Exception as e:
-                    print(f"Watermark error: {e}")
-                self.set_font('helvetica', 'B', 15)
+                        self.image(logo_path, 10, 10, 30)
+                except: 
+                    pass
+                
+                self.set_font('Arial', 'B', 20)
+                self.set_text_color(30, 41, 59)
                 self.cell(0, 10, 'Finance Report', 0, 1, 'C')
-                self.ln(10)
+                
+                self.set_font('Arial', 'I', 10)
+                self.set_text_color(100, 116, 139)
+                self.cell(0, 5, f'Generated on {date.today().strftime("%B %d, %Y")}', 0, 1, 'C')
+                self.ln(15)
+
             def footer(self):
                 self.set_y(-15)
-                self.set_font('helvetica', 'I', 8)
+                self.set_font('Arial', 'I', 8)
+                self.set_text_color(148, 163, 184)
                 self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+
+            def section_title(self, title):
+                self.set_font('Arial', 'B', 14)
+                self.set_text_color(114, 105, 227)
+                self.cell(0, 10, title, 0, 1, 'L')
+                self.line(10, self.get_y(), 200, self.get_y())
+                self.ln(5)
+
+            def table_header(self, headers, widths):
+                self.set_font('Arial', 'B', 10)
+                self.set_fill_color(241, 245, 249)
+                self.set_text_color(51, 65, 85)
+                for i, h in enumerate(headers):
+                    self.cell(widths[i], 10, h, 0, 0, 'L', True)
+                self.ln()
+
+            def table_row(self, data, widths, fill=False):
+                self.set_font('Arial', '', 9)
+                self.set_fill_color(248, 250, 252)
+                self.set_text_color(51, 65, 85)
+                for i, d in enumerate(data):
+                    self.cell(widths[i], 9, str(d), 0, 0, 'L', fill)
+                self.ln()
+
         pdf = PDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
-        pdf.set_font("helvetica", size=10)
-        # Transactions table
-        cols_tx = ['Date', 'Type', 'Category', 'Amount', 'Description']
-        col_widths_tx = [30, 20, 40, 30, 70]
-        for i, col in enumerate(cols_tx):
-            pdf.cell(col_widths_tx[i], 10, col, 1, 0, 'C')
-        pdf.ln()
+        
+        # Summary Section
+        income = df_transactions[df_transactions['type']=='income']['amount'].sum()
+        expense = df_transactions[df_transactions['type']=='expense']['amount'].sum()
+        savings = income - expense
+        
+        pdf.set_font('Arial', 'B', 12)
+        pdf.set_fill_color(241, 245, 249)
+        pdf.cell(63, 20, f"Income: +Rs {income:,.2f}", 0, 0, 'C', True)
+        pdf.cell(1, 20, "", 0, 0) # Spacer
+        pdf.cell(63, 20, f"Expense: -Rs {expense:,.2f}", 0, 0, 'C', True)
+        pdf.cell(1, 20, "", 0, 0) # Spacer
+        pdf.cell(63, 20, f"Net: Rs {savings:,.2f}", 0, 1, 'C', True)
+        pdf.ln(10)
+
+        # Transactions
+        pdf.section_title("Recent Transactions")
+        cols = ['Date', 'Cat', 'Description', 'Type', 'Amount']
+        widths = [25, 30, 75, 20, 40]
+        pdf.table_header(cols, widths)
+        
+        fill = False
         for _, row in df_transactions.iterrows():
-            pdf.cell(col_widths_tx[0], 10, str(row['date']), 1)
-            pdf.cell(col_widths_tx[1], 10, row['type'], 1)
-            pdf.cell(col_widths_tx[2], 10, str(row['category']), 1)
-            pdf.cell(col_widths_tx[3], 10, str(row['amount']), 1)
-            pdf.cell(col_widths_tx[4], 10, str(row['description'])[:30], 1)
-            pdf.ln()
-        # Budget summary
+            amt_str = f"Rs {row['amount']:,.2f}"
+            desc = (row['description'][:35] + '..') if len(row['description']) > 35 else row['description']
+            data = [str(row['date']), row['category'], desc, row['type'].title(), amt_str]
+            pdf.table_row(data, widths, fill)
+            fill = not fill # Toggle row color
+
+        # Budgets
         if not df_budgets.empty:
-            pdf.ln(5)
-            pdf.set_font("helvetica", 'B', 12)
-            pdf.cell(0, 10, 'Budget Summary', 0, 1, 'C')
-            pdf.set_font("helvetica", size=10)
-            cols_bd = ['Category', 'Month', 'Limit', 'Spent', 'Remaining', 'Percent']
-            col_widths_bd = [40, 30, 30, 30, 30, 30]
-            for i, col in enumerate(cols_bd):
-                pdf.cell(col_widths_bd[i], 10, col, 1, 0, 'C')
-            pdf.ln()
-            for _, b in df_budgets.iterrows():
-                pdf.cell(col_widths_bd[0], 10, str(b['Category']), 1)
-                pdf.cell(col_widths_bd[1], 10, str(b['Month']), 1)
-                pdf.cell(col_widths_bd[2], 10, f"{b['Limit']:.2f}", 1)
-                pdf.cell(col_widths_bd[3], 10, f"{b['Spent']:.2f}", 1)
-                pdf.cell(col_widths_bd[4], 10, f"{b['Remaining']:.2f}", 1)
-                pdf.cell(col_widths_bd[5], 10, f"{b['Percent']:.1f}%", 1)
-                pdf.ln()
-        # Bills summary
+            pdf.add_page()
+            pdf.section_title("Budget Status")
+            cols = ['Category', 'Limit', 'Spent', 'Remaining', '%']
+            widths = [50, 35, 35, 35, 35]
+            pdf.table_header(cols, widths)
+            fill = False
+            for _, row in df_budgets.iterrows():
+                data = [
+                    row['Category'], 
+                    f"Rs {row['Limit']:,.0f}", 
+                    f"Rs {row['Spent']:,.0f}",
+                    f"Rs {row['Remaining']:,.0f}",
+                    f"{row['Percent']:.1f}%"
+                ]
+                pdf.table_row(data, widths, fill)
+                fill = not fill
+
+        # Bills
         if not df_bills.empty:
-            pdf.ln(5)
-            pdf.set_font("helvetica", 'B', 12)
-            pdf.cell(0, 10, 'Bills Summary', 0, 1, 'C')
-            pdf.set_font("helvetica", size=10)
-            cols_bl = ['Bill Name', 'Amount', 'Due Date', 'Category', 'Status']
-            col_widths_bl = [50, 30, 35, 40, 35]
-            for i, col in enumerate(cols_bl):
-                pdf.cell(col_widths_bl[i], 10, col, 1, 0, 'C')
-            pdf.ln()
-            for _, bill in df_bills.iterrows():
-                pdf.cell(col_widths_bl[0], 10, str(bill['Bill Name'])[:25], 1)
-                pdf.cell(col_widths_bl[1], 10, f"{float(bill['Amount']):.2f}", 1)
-                pdf.cell(col_widths_bl[2], 10, str(bill['Due Date']), 1)
-                pdf.cell(col_widths_bl[3], 10, str(bill['Category']), 1)
-                pdf.cell(col_widths_bl[4], 10, 'Paid' if bill['Paid'] else 'Pending', 1)
-                pdf.ln()
+            if pdf.get_y() > 200: pdf.add_page()
+            else: pdf.ln(10)
+            
+            pdf.section_title("Upcoming Bills")
+            cols = ['Bill', 'Due Date', 'Amount', 'Status']
+            widths = [60, 40, 40, 50]
+            pdf.table_header(cols, widths)
+            fill = False
+            for _, row in df_bills.iterrows():
+                status = "Paid" if row['Paid'] else "Pending"
+                data = [
+                    row['Bill Name'],
+                    str(row['Due Date']),
+                    f"Rs {float(row['Amount']):,.2f}",
+                    status
+                ]
+                pdf.table_row(data, widths, fill)
+                fill = not fill
+
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
             pdf.output(tmp.name)
             tmp_path = tmp.name
@@ -1808,40 +1881,55 @@ def dashboard_data():
     """, (user_id,))
     monthly = cursor.fetchall()
     
-    # Bills summary for dashboard
     today = date.today()
     
-    # Pending bills count
-    cursor.execute("SELECT COUNT(*) as count FROM bills WHERE user_id = %s AND is_paid = FALSE", (user_id,))
-    pending_bills = cursor.fetchone()['count'] or 0
+    # Optimized Bills Query
+    cursor.execute("SELECT * FROM bills WHERE user_id = %s AND is_paid = FALSE ORDER BY due_date ASC", (user_id,))
+    bills = cursor.fetchall()
     
-    # Overdue bills count
-    cursor.execute("SELECT COUNT(*) as count FROM bills WHERE user_id = %s AND is_paid = FALSE AND due_date < %s", (user_id, today))
-    overdue_bills = cursor.fetchone()['count'] or 0
+    pending_bills = len(bills)
+    overdue_bills = 0
+    due_soon = 0
+    pending_amount = 0
+    upcoming_bills = []
     
-    # Total pending amount
-    cursor.execute("SELECT COALESCE(SUM(amount), 0) as total FROM bills WHERE user_id = %s AND is_paid = FALSE", (user_id,))
-    pending_amount = cursor.fetchone()['total'] or 0
-    
-    # Due soon (within 3 days)
-    cursor.execute("SELECT COUNT(*) as count FROM bills WHERE user_id = %s AND is_paid = FALSE AND due_date >= %s AND due_date <= DATE_ADD(%s, INTERVAL 3 DAY)", (user_id, today, today))
-    due_soon = cursor.fetchone()['count'] or 0
-    
-    # Upcoming bills (next 5 unpaid)
-    cursor.execute("""
-        SELECT id, name, amount, due_date, category 
-        FROM bills 
-        WHERE user_id = %s AND is_paid = FALSE 
-        ORDER BY due_date ASC 
-        LIMIT 5
-    """, (user_id,))
-    upcoming_bills = cursor.fetchall()
-    
-    # Convert dates for JSON serialization
-    for bill in upcoming_bills:
-        if bill['due_date']:
-            bill['due_date'] = bill['due_date'].strftime('%Y-%m-%d')
+    for bill in bills:
+        days_until = (bill['due_date'] - today).days
+        bill['is_overdue'] = days_until < 0
+        bill['is_due_soon'] = 0 <= days_until <= 3
+        
+        if bill['is_overdue']:
+            overdue_bills += 1
+        elif bill['is_due_soon']:
+            due_soon += 1
+            
+        pending_amount += float(bill['amount'])
+        
+        # Add to upcoming list (limit 5)
+        if len(upcoming_bills) < 5:
+            # Convert decimal to float for JSON serialization
             bill['amount'] = float(bill['amount'])
+            if isinstance(bill['due_date'], (date, datetime)):
+                bill['due_date'] = bill['due_date'].strftime('%Y-%m-%d')
+            upcoming_bills.append(bill)
+
+    # Get goals
+    cursor.execute("SELECT * FROM goals WHERE user_id = %s", (user_id,))
+    goals = cursor.fetchall()
+    processed_goals = []
+    for goal in goals:
+        # Calculate percentage
+        target = float(goal['target_amount'])
+        current = float(goal['current_amount'])
+        percent = (current / target * 100) if target > 0 else 0
+        
+        processed_goals.append({
+            'name': goal['name'],
+            'target_amount': target,
+            'current_amount': current,
+            'percentage': round(percent, 1),
+            'deadline': goal['deadline'].strftime('%Y-%m-%d') if goal['deadline'] else None
+        })
     
     cursor.close()
     conn.close()
@@ -1859,7 +1947,8 @@ def dashboard_data():
             'due_soon_count': due_soon,
             'pending_amount': float(pending_amount),
             'upcoming': upcoming_bills
-        }
+        },
+        'goals': processed_goals
     })
 
 if __name__ == '__main__':

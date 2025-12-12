@@ -4,7 +4,8 @@
 <div class="header">
     <div class="page-title">Dashboard</div>
     <div style="display: flex; align-items: center; gap: 1rem;">
-        <button onclick="openWidgetSettings()" class="btn-icon" title="Customize Widgets" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 0.5rem 0.75rem; color: var(--text-muted); cursor: pointer;">
+        <button onclick="openWidgetSettings()" class="btn-icon" title="Customize Widgets"
+            style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 0.5rem 0.75rem; color: var(--text-muted); cursor: pointer;">
             <i class="fas fa-cog"></i>
         </button>
         <div class="date-display" style="color: var(--text-muted);">{{ now }}</div>
@@ -12,20 +13,23 @@
 </div>
 
 <!-- Widget Settings Modal -->
-<div id="widgetModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;">
+<div id="widgetModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;">
     <div class="glass" style="padding: 2rem; border-radius: 20px; max-width: 380px; width: 90%; position: relative;">
-        <button onclick="closeWidgetSettings()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.3rem; line-height: 1;">&times;</button>
-        
+        <button onclick="closeWidgetSettings()"
+            style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.3rem; line-height: 1;">&times;</button>
+
         <h3 style="margin-bottom: 1.75rem; display: flex; align-items: center; gap: 0.75rem; font-size: 1.25rem;">
             <i class="fas fa-th-large" style="color: var(--primary); font-size: 1.1rem;"></i>
             <span>Customize Dashboard</span>
         </h3>
-        
+
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
             <label class="widget-checkbox-item">
                 <input type="checkbox" id="widget-stats" checked onchange="toggleWidget('stats')">
                 <span class="checkmark"></span>
-                <span class="label-text">Summary Cards<br><small style="color: var(--text-muted); font-weight: 400;">(Income/Expense/Balance)</small></span>
+                <span class="label-text">Summary Cards<br><small
+                        style="color: var(--text-muted); font-weight: 400;">(Income/Expense/Balance)</small></span>
             </label>
             <label class="widget-checkbox-item">
                 <input type="checkbox" id="widget-charts" checked onchange="toggleWidget('charts')">
@@ -38,13 +42,19 @@
                 <span class="label-text">Upcoming Bills</span>
             </label>
             <label class="widget-checkbox-item">
+                <input type="checkbox" id="widget-goals" checked onchange="toggleWidget('goals')">
+                <span class="checkmark"></span>
+                <span class="label-text">Financial Goals</span>
+            </label>
+            <label class="widget-checkbox-item">
                 <input type="checkbox" id="widget-transactions" checked onchange="toggleWidget('transactions')">
                 <span class="checkmark"></span>
                 <span class="label-text">Recent Transactions</span>
             </label>
         </div>
-        
-        <button onclick="closeWidgetSettings()" class="btn-primary" style="margin-top: 2rem; padding: 0.875rem;">Done</button>
+
+        <button onclick="closeWidgetSettings()" class="btn-primary"
+            style="margin-top: 2rem; padding: 0.875rem;">Done</button>
     </div>
 </div>
 
@@ -92,44 +102,70 @@
     </div>
 </div>
 
-<!-- Bills & Recent Transactions Row -->
-<div class="dashboard-bottom-section" style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-top: 1.5rem;" id="widget-bottom-row">
+<!-- Bills, Goals & Recent Transactions Row -->
+<div class="dashboard-bottom-section"
+    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 1.5rem;"
+    id="widget-bottom-row">
     <!-- Upcoming Bills -->
     <div class="glass glass-card bills-card" id="widget-bills-container" style="padding: 0; overflow: hidden;">
-        <div style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
+        <div
+            style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
             <h3 style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
                 <i class="fas fa-file-invoice-dollar" style="color: var(--primary);"></i> Upcoming Bills
             </h3>
-            <a href="{{ url_for('bills') }}" style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">View All</a>
+            <a href="{{ url_for('bills') }}"
+                style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">View All</a>
         </div>
-        
+
         <!-- Bills Summary Stats -->
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; padding: 1rem;">
             <div style="background: rgba(231, 76, 60, 0.1); padding: 0.75rem; border-radius: 10px; text-align: center;">
                 <div style="font-size: 1.5rem; font-weight: 700; color: #e74c3c;" id="overdue-bills">0</div>
                 <div style="font-size: 0.75rem; color: var(--text-muted);">Overdue</div>
             </div>
-            <div style="background: rgba(243, 156, 18, 0.1); padding: 0.75rem; border-radius: 10px; text-align: center;">
+            <div
+                style="background: rgba(243, 156, 18, 0.1); padding: 0.75rem; border-radius: 10px; text-align: center;">
                 <div style="font-size: 1.5rem; font-weight: 700; color: #f39c12;" id="due-soon-bills">0</div>
                 <div style="font-size: 0.75rem; color: var(--text-muted);">Due Soon</div>
             </div>
-            <div style="background: rgba(52, 152, 219, 0.1); padding: 0.75rem; border-radius: 10px; text-align: center; grid-column: span 2;">
+            <div
+                style="background: rgba(52, 152, 219, 0.1); padding: 0.75rem; border-radius: 10px; text-align: center; grid-column: span 2;">
                 <div style="font-size: 1.5rem; font-weight: 700; color: #3498db;" id="pending-amount">₹0</div>
                 <div style="font-size: 0.75rem; color: var(--text-muted);">Total Pending</div>
             </div>
         </div>
-        
+
         <!-- Upcoming Bills List -->
         <div style="padding: 0 1rem 1rem 1rem; max-height: 250px; overflow-y: auto;" id="upcoming-bills-list">
             <div style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.9rem;">
-                <i class="fas fa-check-circle" style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 0.5rem;"></i>
+                <i class="fas fa-check-circle"
+                    style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 0.5rem;"></i>
                 No pending bills
             </div>
         </div>
     </div>
 
+    <!-- Goals Widget -->
+    <div class="glass glass-card goals-card" id="widget-goals-container" style="padding: 0; overflow: hidden;">
+        <div
+            style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
+            <h3 style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                <i class="fas fa-bullseye" style="color: var(--success);"></i> Financial Goals
+            </h3>
+            <a href="{{ url_for('goals') }}"
+                style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">View All</a>
+        </div>
+        <div style="padding: 1rem; max-height: 400px; overflow-y: auto;" id="goals-list-container">
+            <!-- Goals will be populated here -->
+            <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                <i class="fas fa-spinner fa-spin"></i> Loading...
+            </div>
+        </div>
+    </div>
+
     <!-- Recent Transactions -->
-    <div class="glass glass-card recent-transactions-card" id="widget-transactions-container" style="padding: 0; overflow: hidden;">
+    <div class="glass glass-card recent-transactions-card" id="widget-transactions-container"
+        style="padding: 0; overflow: hidden;">
         <div
             style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
             <h3 style="font-weight: 600; margin: 0;">Recent Transactions</h3>
@@ -176,32 +212,33 @@
     function toggleWidget(widget) {
         const container = document.getElementById(`widget-${widget}-container`);
         const checkbox = document.getElementById(`widget-${widget}`);
-        
+
         if (container) {
             container.style.display = checkbox.checked ? '' : 'none';
         }
-        
-        // Handle bottom row visibility
-        if (widget === 'bills' || widget === 'transactions') {
+
+        // Handle bottom row visibility and grid layout
+        if (['bills', 'goals', 'transactions'].includes(widget)) {
             updateBottomRowLayout();
         }
-        
+
         saveWidgetSettings();
     }
 
     function updateBottomRowLayout() {
         const billsVisible = document.getElementById('widget-bills').checked;
+        const goalsVisible = document.getElementById('widget-goals').checked;
         const transactionsVisible = document.getElementById('widget-transactions').checked;
         const bottomRow = document.getElementById('widget-bottom-row');
-        
-        if (!billsVisible && !transactionsVisible) {
+
+        const visibleCount = [billsVisible, goalsVisible, transactionsVisible].filter(Boolean).length;
+
+        if (visibleCount === 0) {
             bottomRow.style.display = 'none';
-        } else if (billsVisible && transactionsVisible) {
-            bottomRow.style.display = 'grid';
-            bottomRow.style.gridTemplateColumns = '1fr 2fr';
         } else {
             bottomRow.style.display = 'grid';
-            bottomRow.style.gridTemplateColumns = '1fr';
+            // Auto-fit columns based on visible widgets
+            bottomRow.style.gridTemplateColumns = `repeat(${visibleCount}, 1fr)`;
         }
     }
 
@@ -210,6 +247,7 @@
             stats: document.getElementById('widget-stats').checked,
             charts: document.getElementById('widget-charts').checked,
             bills: document.getElementById('widget-bills').checked,
+            goals: document.getElementById('widget-goals').checked,
             transactions: document.getElementById('widget-transactions').checked
         };
         localStorage.setItem('dashboardWidgets', JSON.stringify(settings));
@@ -230,7 +268,7 @@
     }
 
     // Close modal on outside click
-    document.getElementById('widgetModal').addEventListener('click', function(e) {
+    document.getElementById('widgetModal').addEventListener('click', function (e) {
         if (e.target === this) closeWidgetSettings();
     });
 </script>

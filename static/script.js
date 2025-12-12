@@ -40,10 +40,15 @@ function updateDashboardUI(data) {
 
     // Render all charts
     renderCharts(data);
-    
+
     // Update bills section if data exists
     if (data.bills) {
         updateBillsSection(data.bills);
+    }
+
+    // Update goals section if data exists
+    if (data.goals) {
+        updateGoalsSection(data.goals);
     }
 
     // Populate recent transactions table
@@ -72,17 +77,47 @@ function updateDashboardUI(data) {
     });
 }
 
+function updateGoalsSection(goals) {
+    const container = document.getElementById('goals-list-container');
+    if (!container) return;
+
+    if (goals && goals.length > 0) {
+        container.innerHTML = goals.map(goal => {
+            return `
+                <div style="margin-bottom: 1rem; background: rgba(255,255,255,0.03); padding: 0.75rem; border-radius: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-weight: 500;">${goal.name}</span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">
+                            ₹${goal.current_amount.toLocaleString()} / ₹${goal.target_amount.toLocaleString()}
+                        </span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                        <div style="width: ${Math.min(goal.percentage, 100)}%; height: 100%; background: var(--success); border-radius: 3px; transition: width 0.5s ease;"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } else {
+        container.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.9rem;">
+                <i class="fas fa-bullseye" style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 0.5rem;"></i>
+                No active goals
+            </div>
+        `;
+    }
+}
+
 function updateBillsSection(bills) {
     // Update stats
     const overdueEl = document.getElementById('overdue-bills');
     const dueSoonEl = document.getElementById('due-soon-bills');
     const pendingAmountEl = document.getElementById('pending-amount');
     const billsListEl = document.getElementById('upcoming-bills-list');
-    
+
     if (overdueEl) overdueEl.textContent = bills.overdue_count || 0;
     if (dueSoonEl) dueSoonEl.textContent = bills.due_soon_count || 0;
     if (pendingAmountEl) pendingAmountEl.textContent = formatCurrency(bills.pending_amount || 0);
-    
+
     // Update upcoming bills list
     if (billsListEl) {
         if (bills.upcoming && bills.upcoming.length > 0) {
@@ -91,7 +126,7 @@ function updateBillsSection(bills) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-                
+
                 let statusColor = '#3498db'; // default blue
                 let statusText = '';
                 if (diffDays < 0) {
@@ -104,7 +139,7 @@ function updateBillsSection(bills) {
                     statusColor = '#f39c12';
                     statusText = `<span style="color: #f39c12; font-size: 0.7rem;">${diffDays} days left</span>`;
                 }
-                
+
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; margin-bottom: 0.5rem; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 3px solid ${statusColor};">
                         <div>
@@ -147,15 +182,15 @@ function renderCharts(data) {
         }).reverse();
         const incomeVals = data.monthly.map(m => parseFloat(m.income)).reverse();
         const expenseVals = data.monthly.map(m => parseFloat(m.expense)).reverse();
-        
+
         new Chart(ctxMonthly, {
             type: 'bar',
             data: {
                 labels: months,
                 datasets: [
-                    { 
-                        label: 'Income', 
-                        data: incomeVals, 
+                    {
+                        label: 'Income',
+                        data: incomeVals,
                         backgroundColor: 'rgba(16, 185, 129, 0.8)',
                         borderColor: 'rgba(16, 185, 129, 1)',
                         borderWidth: 0,
@@ -163,9 +198,9 @@ function renderCharts(data) {
                         borderSkipped: false,
                         barThickness: 40,
                     },
-                    { 
-                        label: 'Expense', 
-                        data: expenseVals, 
+                    {
+                        label: 'Expense',
+                        data: expenseVals,
                         backgroundColor: 'rgba(239, 68, 68, 0.8)',
                         borderColor: 'rgba(239, 68, 68, 1)',
                         borderWidth: 0,
@@ -178,8 +213,8 @@ function renderCharts(data) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
+                plugins: {
+                    legend: {
                         position: 'top',
                         labels: {
                             usePointStyle: true,
@@ -195,28 +230,28 @@ function renderCharts(data) {
                         padding: 12,
                         cornerRadius: 8,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return context.dataset.label + ': ₹' + context.raw.toLocaleString('en-IN');
                             }
                         }
                     }
                 },
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
+                scales: {
+                    y: {
+                        beginAtZero: true,
                         grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
                         ticks: {
-                            callback: function(value) {
-                                if (value >= 1000) return '₹' + (value/1000) + 'k';
+                            callback: function (value) {
+                                if (value >= 1000) return '₹' + (value / 1000) + 'k';
                                 return '₹' + value;
                             },
                             font: { size: 11 }
                         }
-                    }, 
-                    x: { 
+                    },
+                    x: {
                         grid: { display: false },
                         ticks: { font: { size: 11 } }
-                    } 
+                    }
                 },
                 barPercentage: 0.9,
                 categoryPercentage: 0.5
@@ -229,15 +264,15 @@ function renderCharts(data) {
     const categories = data.categories || [];
     categories.sort((a, b) => b.total - a.total);
     const topCategories = categories.slice(0, 5);
-    
+
     // Add Income to the pie chart
     const pieLabels = ['Income', ...topCategories.map(c => c.category)];
     const pieValues = [data.income, ...topCategories.map(c => c.total)];
-    
+
     const gradientColors = [
         '#10B981', '#EF4444', '#F59E0B', '#3B82F6', '#EC4899', '#8B5CF6', '#06B6D4'
     ];
-    
+
     new Chart(ctxPie, {
         type: 'doughnut',
         data: {
@@ -254,15 +289,15 @@ function renderCharts(data) {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '60%',
-            plugins: { 
-                legend: { 
-                    position: 'bottom', 
-                    labels: { 
-                        usePointStyle: true, 
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
                         pointStyle: 'circle',
                         padding: 15,
                         font: { size: 11, weight: '500' }
-                    } 
+                    }
                 },
                 tooltip: {
                     backgroundColor: 'rgba(15, 23, 42, 0.9)',
@@ -271,7 +306,7 @@ function renderCharts(data) {
                     padding: 12,
                     cornerRadius: 8,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                             const percentage = ((context.raw / total) * 100).toFixed(1);
                             return context.label + ': ₹' + context.raw.toLocaleString('en-IN') + ' (' + percentage + '%)';
@@ -292,15 +327,15 @@ function renderCharts(data) {
         const incomeVals = data.monthly.map(m => parseFloat(m.income)).reverse();
         const expenseVals = data.monthly.map(m => parseFloat(m.expense)).reverse();
         const savingsVals = incomeVals.map((inc, i) => inc - expenseVals[i]);
-        
+
         new Chart(ctxLine, {
             type: 'bar',
             data: {
                 labels: months,
                 datasets: [
-                    { 
-                        label: 'Income', 
-                        data: incomeVals, 
+                    {
+                        label: 'Income',
+                        data: incomeVals,
                         backgroundColor: 'rgba(16, 185, 129, 0.85)',
                         borderColor: '#10B981',
                         borderWidth: 0,
@@ -308,9 +343,9 @@ function renderCharts(data) {
                         borderSkipped: false,
                         barThickness: 40
                     },
-                    { 
-                        label: 'Expense', 
-                        data: expenseVals, 
+                    {
+                        label: 'Expense',
+                        data: expenseVals,
                         backgroundColor: 'rgba(239, 68, 68, 0.85)',
                         borderColor: '#EF4444',
                         borderWidth: 0,
@@ -318,9 +353,9 @@ function renderCharts(data) {
                         borderSkipped: false,
                         barThickness: 40
                     },
-                    { 
-                        label: 'Savings', 
-                        data: savingsVals, 
+                    {
+                        label: 'Savings',
+                        data: savingsVals,
                         backgroundColor: 'rgba(114, 105, 227, 0.85)',
                         borderColor: '#7269E3',
                         borderWidth: 0,
@@ -333,8 +368,8 @@ function renderCharts(data) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
+                plugins: {
+                    legend: {
                         position: 'top',
                         align: 'center',
                         labels: {
@@ -351,29 +386,29 @@ function renderCharts(data) {
                         padding: 12,
                         cornerRadius: 8,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return context.dataset.label + ': ₹' + context.raw.toLocaleString('en-IN');
                             }
                         }
                     }
                 },
-                scales: { 
-                    y: { 
-                        beginAtZero: true, 
+                scales: {
+                    y: {
+                        beginAtZero: true,
                         grid: { color: 'rgba(255, 255, 255, 0.06)', drawBorder: false },
                         ticks: {
-                            callback: function(value) {
-                                if (value >= 1000) return '₹' + (value/1000) + 'k';
-                                if (value <= -1000) return '-₹' + Math.abs(value/1000) + 'k';
+                            callback: function (value) {
+                                if (value >= 1000) return '₹' + (value / 1000) + 'k';
+                                if (value <= -1000) return '-₹' + Math.abs(value / 1000) + 'k';
                                 return '₹' + value;
                             },
                             font: { size: 11 }
                         }
-                    }, 
-                    x: { 
+                    },
+                    x: {
                         grid: { display: false },
                         ticks: { font: { size: 11 } }
-                    } 
+                    }
                 },
                 barPercentage: 0.9,
                 categoryPercentage: 0.5
